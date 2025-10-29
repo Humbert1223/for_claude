@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "706128272552",
+    "project_id": "novacoleapp",
+    "storage_bucket": "novacoleapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706128272552:android:511862b520e9dd8720b69d",
+        "android_client_info": {
+          "package_name": "com.novacole.a"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQCBktiNYt98XTadqbFzVnfNwwwlT_oNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706128272552:android:feff180cdd61d1fd20b69d",
+        "android_client_info": {
+          "package_name": "com.novacole.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDQCBktiNYt98XTadqbFzVnfNwwwlT_oNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

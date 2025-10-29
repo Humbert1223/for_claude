@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="android.hardware.type.watch">false</bool>
+</resources>
