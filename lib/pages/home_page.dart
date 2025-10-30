@@ -35,10 +35,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  UserModel? _user;
   int _page = 0;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final authController = Get.find<AuthController>();
 
   @override
   void initState() {
@@ -61,7 +61,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _initializeApp() async {
     _checkLastNotification();
-    await _loadUser();
     Get.find<AuthController>().refreshUser();
   }
 
@@ -79,17 +78,6 @@ class _HomeScreenState extends State<HomeScreen>
       }
     } catch (e) {
       debugPrint('Erreur notification: $e');
-    }
-  }
-
-  Future<void> _loadUser() async {
-    try {
-      final usr = await UserModel.fromLocalStorage();
-      if (mounted) {
-        setState(() => _user = usr);
-      }
-    } catch (e) {
-      debugPrint('Erreur chargement utilisateur: $e');
     }
   }
 
@@ -242,9 +230,9 @@ class _HomeScreenState extends State<HomeScreen>
                     height: 1.2,
                   ),
                 ),
-                if (_page == 0 && _user?.name != null)
+                if (_page == 0 && authController.currentUser.value?.name != null)
                   Text(
-                    'Bienvenue, ${_user!.name!.split(' ').first} 👋',
+                    'Bienvenue, ${authController.currentUser.value!.name!.split(' ').first} 👋',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -513,9 +501,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildProfileNavItem(bool isDark) {
     final isSelected = _page == 3;
-    final imageProvider = _user?.avatar == null
+    final imageProvider = authController.currentUser.value?.avatar == null
         ? const AssetImage('assets/images/person.jpeg') as ImageProvider
-        : CachedNetworkImageProvider(_user!.avatar!);
+        : CachedNetworkImageProvider(authController.currentUser.value!.avatar!);
 
     return Expanded(
       child: GestureDetector(

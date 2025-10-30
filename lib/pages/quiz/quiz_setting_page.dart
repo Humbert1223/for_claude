@@ -80,7 +80,6 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
           in (_getPreference<List>(prefs, PreferenceKeys.chapters) ?? [])) {
         _selectedChapters.add(Map<String, dynamic>.from(el));
       }
-      print(_selectedChapters);
       _isTimerEnabled = prefs[PreferenceKeys.isTimerEnabled] as bool? ?? false;
       _isSoundEnabled = prefs[PreferenceKeys.isSoundEnabled] as bool? ?? false;
     });

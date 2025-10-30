@@ -67,22 +67,10 @@ class StudentDetailsInfoPage extends StatelessWidget {
         titlePadding: const EdgeInsets.only(left: 16, bottom: 16, right: 16),
         title: Row(
           children: [
-            Hero(
-              tag: 'student_photo_${student['id']}',
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha:0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ModelPhotoWidget(model: student),
-              ),
+            ModelPhotoWidget(
+                model: student,
+              height: 80,
+              width: 80,
             ),
             const SizedBox(width: 12),
             Expanded(

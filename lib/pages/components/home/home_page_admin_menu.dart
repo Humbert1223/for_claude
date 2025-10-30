@@ -23,286 +23,314 @@ class HomePageAdminMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      primary: false,
-      shrinkWrap: true,
-      padding: EdgeInsets.symmetric(vertical: 40.0),
-      children: [
-        HomeMenuWidget(
+    final List<Widget> menuItems  = [
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return const DashboardSubmenuPage();
+              },
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/dashboard.png",
+          height: 70,
+        ),
+        title: "Dashboard",
+      ),
+      DisableIfNoPermission(
+        permission: PermissionName.viewAny(Entity.classe),
+        child: HomeMenuWidget(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ClasseListPage()),
+            );
+          },
+          image: Image.asset(
+            "assets/images/menus/classroom.png",
+            height: 70,
+          ),
+          title: "Classes",
+        ),
+      ),
+      PermissionGuard(
+        anyOf: [
+          PermissionName.viewAny(Entity.registration),
+          PermissionName.viewAny(Entity.assessment),
+          PermissionName.viewAny(Entity.exam),
+          PermissionName.viewAny(Entity.mark),
+          PermissionName.viewAny(Entity.irregularity),
+          PermissionName.viewAny(Entity.leave),
+        ],
+        showFallback: true,
+        child: HomeMenuWidget(
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) {
-                  return const DashboardSubmenuPage();
+                  return const ActivitiesSubmenuPage();
+                },
+              ),
+            );
+          },
+          title: "Activités",
+          image: Image.asset(
+            "assets/images/menus/activities.png",
+            height: 70,
+          ),
+        ),
+      ),
+      DisableIfNoPermission(
+        permission: PermissionName.viewAny(Entity.student),
+        child: HomeMenuWidget(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return const StudentListPage();
                 },
               ),
             );
           },
           image: Image.asset(
-            "assets/images/menus/dashboard.png",
+            "assets/images/menus/students.png",
             height: 70,
           ),
-          title: "Dashboard",
+          title: "Élèves",
         ),
-        DisableIfNoPermission(
-          permission: PermissionName.viewAny(Entity.classe),
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ClasseListPage()),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/classroom.png",
-              height: 70,
-            ),
-            title: "Classes",
-          ),
-        ),
-        PermissionGuard(
-          anyOf: [
-            PermissionName.viewAny(Entity.registration),
-            PermissionName.viewAny(Entity.assessment),
-            PermissionName.viewAny(Entity.exam),
-            PermissionName.viewAny(Entity.mark),
-            PermissionName.viewAny(Entity.irregularity),
-            PermissionName.viewAny(Entity.leave),
-          ],
-          showFallback: true,
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ActivitiesSubmenuPage();
-                  },
-                ),
-              );
-            },
-            title: "Activités",
-            image: Image.asset(
-              "assets/images/menus/activities.png",
-              height: 70,
-            ),
-          ),
-        ),
-        DisableIfNoPermission(
-          permission: PermissionName.viewAny(Entity.student),
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const StudentListPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/students.png",
-              height: 70,
-            ),
-            title: "Élèves",
-          ),
-        ),
-        DisableIfNoPermission(
-          permission: PermissionName.viewAny(Entity.tutor),
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TutorListPage(),
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/parents.png",
-              height: 70,
-            ),
-            title: "Parents",
-          ),
-        ),
-        DisableIfNoPermission(
-          permission: PermissionName.viewAny(Entity.teacher),
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const TeacherListPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/teacher.png",
-              height: 70,
-            ),
-            title: "Enseignants",
-          ),
-        ),
-        PermissionGuard(
-          showFallback: true,
-          anyOf: [
-            PermissionName.viewAny(Entity.paymentRequest),
-            PermissionName.viewAny(Entity.operation),
-            PermissionName.viewAny(Entity.payment),
-          ],
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const FinancesSubmenuPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/finance.png",
-              height: 70,
-            ),
-            title: "Finances",
-          ),
-        ),
-        PermissionGuard(
-          showFallback: true,
-          anyOf: [
-            PermissionName.viewAny(Entity.post),
-            PermissionName.viewAny(Entity.event),
-          ],
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const InformationSubmenuPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/notification.png",
-              height: 70,
-            ),
-            title: "Information",
-          ),
-        ),
-        PermissionGuard(
-          showFallback: true,
-          anyOf: [
-            PermissionName.viewAny(Entity.academic),
-            PermissionName.viewAny(Entity.classe),
-            PermissionName.viewAny(Entity.paymentMethod),
-            PermissionName.viewAny(Entity.expense),
-            PermissionName.viewAny(Entity.period),
-            PermissionName.viewAny(Entity.tuition),
-          ],
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const ConfigSubmenuPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/setting.png",
-              height: 70,
-            ),
-            title: "Config.",
-          ),
-        ),
-        PermissionGuard(
-          showFallback: true,
-          anyOf: [
-            PermissionName.viewAny(Entity.user),
-            PermissionName.viewAny(Entity.role),
-            PermissionName.viewAny(Entity.permission)
-          ],
-          child: HomeMenuWidget(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) {
-                    return const AuthorisationSubmenuPage();
-                  },
-                ),
-              );
-            },
-            image: Image.asset(
-              "assets/images/menus/auth.png",
-              height: 70,
-            ),
-            title: "Sécurité",
-          ),
-        ),
-        HomeMenuWidget(
+      ),
+      DisableIfNoPermission(
+        permission: PermissionName.viewAny(Entity.tutor),
+        child: HomeMenuWidget(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AdminReportPage(),
+                builder: (context) => const TutorListPage(),
               ),
             );
           },
           image: Image.asset(
-            "assets/images/menus/reports.png",
+            "assets/images/menus/parents.png",
             height: 70,
           ),
-          title: "Rapports & États",
+          title: "Parents",
         ),
-        HomeMenuWidget(
+      ),
+      DisableIfNoPermission(
+        permission: PermissionName.viewAny(Entity.teacher),
+        child: HomeMenuWidget(
           onTap: () {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const SuggestionPage(),
+                builder: (context) {
+                  return const TeacherListPage();
+                },
               ),
             );
           },
           image: Image.asset(
-            "assets/images/menus/suggestion.png",
+            "assets/images/menus/teacher.png",
             height: 70,
           ),
-          title: "Boite à Suggestion",
+          title: "Enseignants",
         ),
-        HomeMenuWidget(
+      ),
+      PermissionGuard(
+        showFallback: true,
+        anyOf: [
+          PermissionName.viewAny(Entity.paymentRequest),
+          PermissionName.viewAny(Entity.operation),
+          PermissionName.viewAny(Entity.payment),
+        ],
+        child: HomeMenuWidget(
           onTap: () {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const LibraryListPage(),
+                builder: (context) {
+                  return const FinancesSubmenuPage();
+                },
               ),
             );
           },
           image: Image.asset(
-            "assets/images/menus/library.png",
+            "assets/images/menus/finance.png",
             height: 70,
           ),
-          title: "BIBLIOTHÈQUE",
+          title: "Finances",
         ),
-        HomeMenuWidget(
+      ),
+      PermissionGuard(
+        showFallback: true,
+        anyOf: [
+          PermissionName.viewAny(Entity.post),
+          PermissionName.viewAny(Entity.event),
+        ],
+        child: HomeMenuWidget(
           onTap: () {
-            Navigator.push(
-              context,
+            Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => const QuizEntryPoint(),
+                builder: (context) {
+                  return const InformationSubmenuPage();
+                },
               ),
             );
           },
           image: Image.asset(
-            "assets/images/menus/quiz.png",
+            "assets/images/menus/notification.png",
             height: 70,
           ),
-          title: "JEU DE QUIZ",
+          title: "Information",
         ),
-      ],
+      ),
+      PermissionGuard(
+        showFallback: true,
+        anyOf: [
+          PermissionName.viewAny(Entity.academic),
+          PermissionName.viewAny(Entity.classe),
+          PermissionName.viewAny(Entity.paymentMethod),
+          PermissionName.viewAny(Entity.expense),
+          PermissionName.viewAny(Entity.period),
+          PermissionName.viewAny(Entity.tuition),
+        ],
+        child: HomeMenuWidget(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return const ConfigSubmenuPage();
+                },
+              ),
+            );
+          },
+          image: Image.asset(
+            "assets/images/menus/setting.png",
+            height: 70,
+          ),
+          title: "Config.",
+        ),
+      ),
+      PermissionGuard(
+        showFallback: true,
+        anyOf: [
+          PermissionName.viewAny(Entity.user),
+          PermissionName.viewAny(Entity.role),
+          PermissionName.viewAny(Entity.permission)
+        ],
+        child: HomeMenuWidget(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) {
+                  return const AuthorisationSubmenuPage();
+                },
+              ),
+            );
+          },
+          image: Image.asset(
+            "assets/images/menus/auth.png",
+            height: 70,
+          ),
+          title: "Sécurité",
+        ),
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminReportPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/reports.png",
+          height: 70,
+        ),
+        title: "Rapports & États",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SuggestionPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/suggestion.png",
+          height: 70,
+        ),
+        title: "Boite à Suggestion",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LibraryListPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/library.png",
+          height: 70,
+        ),
+        title: "BIBLIOTHÈQUE",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const QuizEntryPoint(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/quiz.png",
+          height: 70,
+        ),
+        title: "JEU DE QUIZ",
+      ),
+    ];
+
+    return buildModernMenuGrid(context, menuItems);
+  }
+  Widget buildModernMenuGrid(BuildContext context, List<Widget> menuItems) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+            theme.colorScheme.surface,
+            theme.colorScheme.surface.withValues(alpha: 0.95),
+          ]
+              : [
+            Colors.grey.shade50,
+            Colors.white,
+          ],
+        ),
+      ),
+      child: GridView.count(
+        primary: false,
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        padding: const EdgeInsets.fromLTRB(12, 40, 12, 40),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.95,
+        children: menuItems,
+      ),
     );
   }
 }

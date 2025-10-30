@@ -25,6 +25,7 @@ class TaskType {
 }
 
 class Entity {
+  const Entity._();
   static const String teacher = 'teacher';
   static const String tutor = 'tutor';
   static const String registration = 'registration';

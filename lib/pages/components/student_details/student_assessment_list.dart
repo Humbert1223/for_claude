@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/models/master_crud_model.dart';
-import 'package:novacole/pages/student_assessment_mark_page.dart';
+import 'package:novacole/pages/components/student_details/student_assessment_mark_page.dart';
 
 class StudentAssessmentList extends StatelessWidget {
   final Map<String, dynamic> repartition;

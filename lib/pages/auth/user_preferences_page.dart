@@ -569,111 +569,111 @@ class UserAcademicSelectFormState extends State<UserAcademicSelectForm> {
                         ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: ModelFormInputSelect(
-                  item: {
-                    'field': 'academic_id',
-                    'entity': 'academic',
-                    'type': 'selectresource',
-                    'name': 'Année scolaire',
-                    'placeholder': 'Sélectionner une année',
-                    'value': authController.currentUser.value?.academic,
-                    'filters': [
-                      {
-                        'field': 'school_id',
-                        'operator': '=',
-                        'value': authController.currentUser.value?.school,
-                      },
-                      {'field': 'started_at', 'operator': '!=', 'value': null},
-                    ],
-                  },
-                  onChange: (value) {
-                    showDialog(
-                      barrierDismissible: false,
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: CircularProgressIndicator(
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'Changement en cours...',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Veuillez patienter',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-
-                    MasterCrudModel.patch('/auth/user/academic/update', {
-                          'academic_id': value,
-                        })
-                        .then((usr) {
-                          if (usr != null) {
-                            usr['token'] =
-                                authController.currentUser.value?.token;
-                            authController.setCurrentUser(
-                              UserModel.fromMap(usr),
-                            );
-                            authController.addToSavedAccounts(
-                              UserModel.fromMap(usr),
-                            );
-                          }
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        })
-                        .catchError((e) {
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Erreur de chargement: ${e.message}',
-                                ),
-                                backgroundColor: Colors.red,
+                child: Obx(
+                  () => ModelFormInputSelect(
+                    item: {
+                      'field': 'academic_id',
+                      'entity': 'academic',
+                      'type': 'selectresource',
+                      'name': 'Année scolaire',
+                      'placeholder': 'Sélectionner une année',
+                      'value': authController.currentUser.value?.academic,
+                      'filters': [
+                        {
+                          'field': 'school_id',
+                          'operator': '=',
+                          'value': authController.currentUser.value?.school,
+                        },
+                        {
+                          'field': 'started_at',
+                          'operator': '!=',
+                          'value': null,
+                        },
+                      ],
+                    },
+                    onChange: (value) {
+                      showDialog(
+                        barrierDismissible: false,
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surface,
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                            );
-                          }
-                        });
-                  },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: CircularProgressIndicator(
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    'Changement en cours...',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Veuillez patienter',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: theme.colorScheme.onSurface
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
+                      MasterCrudModel.patch('/auth/user/academic/update', {
+                            'academic_id': value,
+                          })
+                          .then((usr) async {
+                            if (usr != null) {
+                             await authController.refreshUser();
+                            }
+                            if (context.mounted) {
+                              Navigator.of(
+                                context,
+                              ).pop();
+                            }
+                          })
+                          .catchError((e) {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Erreur de chargement: ${e.message}',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          });
+                    },
+                  ),
                 ),
               ),
             ],

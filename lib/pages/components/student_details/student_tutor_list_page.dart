@@ -44,6 +44,8 @@ class StudentTutorListPageState extends State<StudentTutorListPage> {
             _loadTutors();
           },
           child: ListView(
+            primary: false,
+            shrinkWrap: true,
             children: tutors.map((tutor) {
               return Card(
                 child: ListTile(

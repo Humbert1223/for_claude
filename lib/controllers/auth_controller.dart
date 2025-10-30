@@ -15,6 +15,8 @@ class AuthController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxList<String> permissions = <String>[].obs;
   final RxList<UserModel> savedAccounts = <UserModel>[].obs;
+  final RxMap<String, dynamic> currentSchool = RxMap<String, dynamic>();
+  final RxMap<String, dynamic> currentAcademic = RxMap<String, dynamic>();
 
   @override
   void onInit() {
@@ -242,54 +244,31 @@ class AuthController extends GetxController {
   // ==================== ACADEMIC & SCHOOL ====================
 
   /// Récupérer les informations de l'année académique
-  Future<Map<String, dynamic>?> getAcademic() async {
+  Future<void> _getAcademic() async {
     try {
-      final user = currentUser.value;
-      if (user == null || user.academic == null) return null;
-
-      SharedPreferences prefs = await Http().local();
-      String? cached = prefs.getString('academic');
-
-      if (cached != null) {
-        return Map<String, dynamic>.from(jsonDecode(cached));
-      }
+      if (currentUser.value == null || currentUser.value!.academic == null) return;
 
       Map<String, dynamic>? response = await MasterCrudModel('academic')
-          .get(user.academic!);
+          .get(currentUser.value!.academic!);
 
-      if (response != null) {
-        await prefs.setString('academic', jsonEncode(response));
-      }
-
-      return response;
+      currentAcademic.value = response ?? {};
     } catch (e) {
-      return null;
+      return;
     }
   }
 
   /// Récupérer les informations de l'école
-  Future<Map<String, dynamic>?> getSchool() async {
+  Future<void> _getSchool() async {
     try {
       final user = currentUser.value;
-      if (user == null || user.school == null) return null;
-
-      SharedPreferences prefs = await Http().local();
-      String? cached = prefs.getString('school');
-
-      if (cached != null) {
-        return Map<String, dynamic>.from(jsonDecode(cached));
-      }
+      if (user == null || user.school == null) null;
 
       Map<String, dynamic>? response = await MasterCrudModel('school')
-          .get(user.school!);
+          .get(user!.school!);
 
-      if (response != null) {
-        await prefs.setString('school', jsonEncode(response));
-      }
-
-      return response;
+      currentSchool.value = response ?? {};
     } catch (e) {
-      return null;
+      return;
     }
   }
 
@@ -307,6 +286,8 @@ class AuthController extends GetxController {
     // Sauvegarder dans le stockage local
     SharedPreferences prefs = await Http().local();
     await prefs.setString('auth_user', jsonEncode(user.toMap()));
+    await _getAcademic();
+    await _getSchool();
   }
 
   /// Charger l'utilisateur depuis le stockage

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/permission_widgets.dart';
 import 'package:novacole/components/sub_menu_item.dart';
 import 'package:novacole/pages/admin/finances/other_incoming_page.dart';
@@ -36,18 +37,10 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
         title: const Text(
           'Finances',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
       ),
@@ -62,10 +55,11 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                 child: SubMenuWidget(
                   icon: Icons.monetization_on_outlined,
                   title: "Demandes de paiement",
-                  subtitle: "Les demandes de paiement effectuées par les parents et partenaires",
+                  subtitle:
+                      "Les demandes de paiement effectuées par les parents et partenaires",
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const AdminPaymentRequestPage()),
+                      MaterialPageRoute(builder: (context) => const FinancePaymentRequestPage()),
                     );
                   },
                 ),
@@ -78,7 +72,9 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                   subtitle: "Gestion des frais d'inscription",
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const RegistrationFeesPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const RegistrationFeesPage(),
+                      ),
                     );
                   },
                 ),
@@ -91,7 +87,9 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                   subtitle: 'Gestion des frais de scolarité',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const SchoolFeesPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const SchoolFeesPage(),
+                      ),
                     );
                   },
                 ),
@@ -104,7 +102,9 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                   subtitle: 'Gestion des charges salariales',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const SalaryFeesPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const SalaryFeesPage(),
+                      ),
                     );
                   },
                 ),
@@ -117,7 +117,9 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                   subtitle: 'Cotisations, vente de fourniture ...',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const OtherIncomingPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const OtherIncomingPage(),
+                      ),
                     );
                   },
                 ),
@@ -130,7 +132,9 @@ class FinancesSubmenuPageState extends State<FinancesSubmenuPage> {
                   subtitle: 'Électricité, achat fournitures ...',
                   onTap: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const OtherOutgoingPage()),
+                      MaterialPageRoute(
+                        builder: (context) => const OtherOutgoingPage(),
+                      ),
                     );
                   },
                 ),

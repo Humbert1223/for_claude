@@ -220,7 +220,6 @@ class ModelPhotoWidgetState extends State<ModelPhotoWidget> {
 
     return Stack(
       children: [
-        // Image principale avec effets
         Container(
           height: widget.height ?? 90,
           width: widget.width ?? 90,

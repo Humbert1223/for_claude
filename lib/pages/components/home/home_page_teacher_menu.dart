@@ -19,195 +19,223 @@ class HomePageTeacherMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      primary: false,
-      shrinkWrap: true,
-      crossAxisCount: 3,
-      padding: EdgeInsets.symmetric(vertical: 40.0),
-      children: [
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ClasseListPage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/classroom.png",
-            height: 70,
-          ),
-          title: "Classes",
+    final List<Widget> menuItems =  [
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ClasseListPage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/classroom.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const PresencePage()),
-            );
-          },
-          title: "Présence",
-          image: Image.asset(
-            "assets/images/menus/presence.png",
-            height: 70,
-          ),
+        title: "Classes",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PresencePage()),
+          );
+        },
+        title: "Présence",
+        image: Image.asset(
+          "assets/images/menus/presence.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TeacherMarkSubMenuPage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/mark.png",
-            height: 70,
-          ),
-          title: "Notes",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const TeacherMarkSubMenuPage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/mark.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const StudentListPage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/students.png",
-            height: 70,
-          ),
-          title: "Élèves",
+        title: "Notes",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const StudentListPage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/students.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LeavePage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/leave.png",
-            height: 70,
-          ),
-          title: "Départ",
+        title: "Élèves",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const LeavePage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/leave.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AnnouncesPage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/notification.png",
-            height: 70,
-          ),
-          title: "Annonces",
+        title: "Départ",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AnnouncesPage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/notification.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EventPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/event.png",
-            height: 70,
-          ),
-          title: "Évenements",
+        title: "Annonces",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const EventPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/event.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) {
-                  return const TeacherAssessmentTrackingList();
+        title: "Évenements",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                return const TeacherAssessmentTrackingList();
+              },
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/dashboard.png",
+          height: 70,
+        ),
+        title: "Suivi des notes",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ReportClasseFilterSelector(
+                degree: null,
+                onSelect: (filters, classe) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return TeacherClasseReportDownloadPage(
+                          classe: classe,
+                          filters: filters,
+                        );
+                      },
+                    ),
+                  );
                 },
               ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/dashboard.png",
-            height: 70,
-          ),
-          title: "Suivi des notes",
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/reports.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => ReportClasseFilterSelector(
-                  degree: null,
-                  onSelect: (filters, classe) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return TeacherClasseReportDownloadPage(
-                            classe: classe,
-                            filters: filters,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/reports.png",
-            height: 70,
-          ),
-          title: "Rapports & États",
+        title: "Rapports & États",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SuggestionPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/suggestion.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SuggestionPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/suggestion.png",
-            height: 70,
-          ),
-          title: "Boite à Suggestion",
+        title: "Boite à Suggestion",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LibraryListPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/library.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LibraryListPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/library.png",
-            height: 70,
-          ),
-          title: "BIBLIOTHÈQUE",
+        title: "BIBLIOTHÈQUE",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const QuizEntryPoint(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/quiz.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const QuizEntryPoint(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/quiz.png",
-            height: 70,
-          ),
-          title: "JEU DE QUIZ",
+        title: "JEU DE QUIZ",
+      ),
+    ];
+    return buildModernMenuGrid(context, menuItems);
+  }
+
+  Widget buildModernMenuGrid(BuildContext context, List<Widget> menuItems) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+            theme.colorScheme.surface,
+            theme.colorScheme.surface.withValues(alpha: 0.95),
+          ]
+              : [
+            Colors.grey.shade50,
+            Colors.white,
+          ],
         ),
-      ],
+      ),
+      child: GridView.count(
+        primary: false,
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        padding: const EdgeInsets.fromLTRB(12, 40, 12, 40),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.95,
+        children: menuItems,
+      ),
     );
   }
 }

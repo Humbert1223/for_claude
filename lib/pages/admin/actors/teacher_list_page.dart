@@ -91,7 +91,7 @@ class TeacherInfoWidget extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         SizedBox(
-          width: MediaQuery.of(context).size.width - 185,
+          width: MediaQuery.of(context).size.width - 200,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

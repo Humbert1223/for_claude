@@ -36,7 +36,7 @@ class SchoolUserWalletState extends State<SchoolUserWallet> {
       final data = await authController.fromServer();
       if (data != null && mounted) {
         setState(() => user = UserModel.fromMap(data));
-        final schoolData = await authController.getSchool();
+        final schoolData = authController.currentSchool.value;
         if (schoolData != null && mounted) {
           setState(() => school = schoolData);
         }

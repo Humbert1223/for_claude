@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/json_schema.dart';
 import 'package:novacole/components/loading_indicator.dart';
@@ -103,7 +104,6 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
         inputs = widget.inputsMutator!(inputs, widget.data);
       }
 
-
       // Pré-remplir avec les données par default
       if (widget.defaultData != null) {
         inputs = _populateInputsDefaultData(inputs, widget.defaultData!);
@@ -148,7 +148,7 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
     }).toList();
   }
 
-  /// Remplit les inputs avec les données existantes
+  /// Remplit les inputs avec les données par défaut
   List<Map<String, dynamic>> _populateInputsDefaultData(
       List<Map<String, dynamic>> inputs,
       Map<String, dynamic> data,
@@ -158,7 +158,7 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
       if (fieldName != null && data.containsKey(fieldName)) {
         return {
           ...input,
-          'value': input[fieldName] ?? data[fieldName],
+          'value': input['value'] ?? data[fieldName],
         };
       }
       return input;
@@ -244,11 +244,37 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
 
   /// Affiche une boîte de dialogue de chargement
   void _showLoadingDialog() {
-    showModalBottomSheet<void>(
+    showDialog(
       context: context,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (context) => const _LoadingBottomSheet(),
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text(
+                  'Enregistrement en cours...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -267,11 +293,8 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: RefreshIndicator(
-        onRefresh: _loadForm,
-        child: SafeArea(
-          child: _buildBody(),
-        ),
+      body: SafeArea(
+        child: _buildBody(),
       ),
     );
   }
@@ -280,10 +303,7 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       centerTitle: true,
-      leading: IconButton(
-        onPressed: () => Navigator.of(context).pop(),
-        icon: const Icon(Icons.arrow_back_rounded),
-      ),
+      leading: AppBarBackButton(),
       title: Text(
         widget.title,
         style: const TextStyle(
@@ -318,71 +338,33 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15.0),
-        child: JsonSchema(
-          form: _formSchema!,
-          actionSave: _handleSave,
-        ),
+      child: JsonSchema(
+        form: _formSchema!,
+        actionSave: _handleSave,
       ),
     );
   }
 
   /// Construit l'état vide
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const EmptyPage(),
-          if (_errorMessage != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                _errorMessage!,
-                style: TextStyle(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _loadForm,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Réessayer'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Construit l'état d'erreur
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red[300],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Une erreur est survenue',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage!,
-                style: TextStyle(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
+            const SizedBox(height: 100),
+            const EmptyPage(),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ],
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: _loadForm,
               icon: const Icon(Icons.refresh),
@@ -393,31 +375,45 @@ class _DefaultDataFormState extends State<DefaultDataForm> {
       ),
     );
   }
-}
 
-/// Widget de la bottom sheet de chargement
-class _LoadingBottomSheet extends StatelessWidget {
-  const _LoadingBottomSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      child: const Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            LoadingIndicator(),
-            SizedBox(height: 16),
-            Text(
-              'Enregistrement en cours...',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+  /// Construit l'état d'erreur
+  Widget _buildErrorState() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 100),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red[300],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(
+                'Une erreur est survenue',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.grey[600]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _loadForm,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Réessayer'),
+              ),
+            ],
+          ),
         ),
       ),
     );

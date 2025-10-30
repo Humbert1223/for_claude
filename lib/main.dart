@@ -102,7 +102,7 @@ class EcoleAppState extends State<EcoleApp> {
       create: (_) => ThemeModel(),
       child: Consumer<ThemeModel>(
         builder: (context, ThemeModel notifier, child) {
-          return MaterialApp(
+          return GetMaterialApp(
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
             locale: context.locale,

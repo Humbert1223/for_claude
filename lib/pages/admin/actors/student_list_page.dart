@@ -103,7 +103,7 @@ class StudentInfoWidget extends StatelessWidget {
               style: const TextStyle(fontSize: 12),
             ),
             SizedBox(
-              width: MediaQuery.of(context).size.width - 180,
+              width: MediaQuery.of(context).size.width - 200,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

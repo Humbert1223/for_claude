@@ -5,22 +5,21 @@ import 'package:novacole/components/json_schema.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/components/permission_widgets.dart';
 import 'package:novacole/components/tag_widget.dart';
-import 'package:novacole/controllers/auth_controller.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/utils/constants.dart';
 import 'package:novacole/utils/permission_utils.dart';
 import 'package:novacole/utils/tools.dart';
 
-class AdminPaymentRequestPage extends StatefulWidget {
-  const AdminPaymentRequestPage({super.key});
+class FinancePaymentRequestPage extends StatefulWidget {
+  const FinancePaymentRequestPage({super.key});
 
   @override
-  AdminPaymentRequestPageState createState() {
-    return AdminPaymentRequestPageState();
+  FinancePaymentRequestPageState createState() {
+    return FinancePaymentRequestPageState();
   }
 }
 
-class AdminPaymentRequestPageState extends State<AdminPaymentRequestPage> {
+class FinancePaymentRequestPageState extends State<FinancePaymentRequestPage> {
   @override
   void initState() {
     super.initState();
@@ -83,16 +82,13 @@ class AdminPaymentRequestPageState extends State<AdminPaymentRequestPage> {
         );
       },
       query: {'order_by': 'created_at', 'order_direction': 'DESC'},
-      dataModel: 'payment_request',
+      dataModel: Entity.paymentRequest,
       paginate: PaginationValue.paginated,
       title: 'Demandes de paiement',
       canAdd: false,
-      optionVisible: false,
+      optionVisible: true,
       canDelete: (item) => false,
       canEdit: (item) => false,
-      onBack: () {
-        Navigator.of(context).pop();
-      },
       optionsBuilder: (item, reload, updateLine) {
         return [
           if (item['status'] != 'accepted')

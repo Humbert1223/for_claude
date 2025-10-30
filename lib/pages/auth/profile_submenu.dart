@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/pages/auth/user_teacher_profile.dart';
 import 'package:novacole/pages/auth/user_tutor_profile.dart';
 
@@ -28,15 +29,7 @@ class UserActorProfilesSubmenuState extends State<UserActorProfilesSubmenu> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/home',
-              (route) => false,
-            );
-          },
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
         title: const Text(
           'Mes profils',
           style: TextStyle(

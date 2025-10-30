@@ -99,10 +99,25 @@ class StudentDetailsState extends State<StudentDetails> with SingleTickerProvide
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 190,
       pinned: true,
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      title: Text(
+        "${widget.student['full_name']}",
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          shadows: [
+            Shadow(
+              color: Colors.black26,
+              offset: Offset(0, 2),
+              blurRadius: 4,
+            ),
+          ],
+        ),
+      ) ,
+      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.9),
       leading: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -171,26 +186,10 @@ class StudentDetailsState extends State<StudentDetails> with SingleTickerProvide
               right: 16,
               child: Row(
                 children: [
-                  Hero(
-                    tag: 'student_photo_${widget.student['id']}',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha:0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ModelPhotoWidget(
-                        model: widget.student,
-                        width: 80,
-                        height: 80,
-                      ),
-                    ),
+                  ModelPhotoWidget(
+                    model: widget.student,
+                    width: 90,
+                    height: 90,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -198,22 +197,6 @@ class StudentDetailsState extends State<StudentDetails> with SingleTickerProvide
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          "${widget.student['full_name']}",
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                offset: Offset(0, 2),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
                         _buildInfoChip(
                           icon: Icons.badge_outlined,
                           text: widget.student['matricule'] ?? '-',

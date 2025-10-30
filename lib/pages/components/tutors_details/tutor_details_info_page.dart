@@ -165,26 +165,10 @@ class _TutorDetailsInfoPageState extends State<TutorDetailsInfoPage>
               right: 16,
               child: Row(
                 children: [
-                  Hero(
-                    tag: 'tutor_photo_${widget.tutor['id']}',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ModelPhotoWidget(
-                        model: widget.tutor,
-                        width: 80,
-                        height: 80,
-                      ),
-                    ),
+                  ModelPhotoWidget(
+                    model: widget.tutor,
+                    width: 90,
+                    height: 90,
                   ),
                   const SizedBox(width: 16),
                   Expanded(

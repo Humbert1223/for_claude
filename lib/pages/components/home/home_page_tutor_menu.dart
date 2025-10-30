@@ -13,116 +13,143 @@ class HomePageTutorMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      primary: false,
-      shrinkWrap: true,
-      padding: EdgeInsets.symmetric(vertical: 40.0),
-      children: [
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TutorStudentPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/students.png",
-            height: 70,
-          ),
-          title: "Enfants",
+    final List<Widget> menuItems = [
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TutorStudentPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/students.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AnnouncesPage()),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/notification.png",
-            height: 70,
-          ),
-          title: "Annonces",
+        title: "Enfants",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AnnouncesPage()),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/notification.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EventPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/event.png",
-            height: 70,
-          ),
-          title: "Événements",
+        title: "Annonces",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const EventPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/event.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SuggestionPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/suggestion.png",
-            height: 70,
-          ),
-          title: "Boite à Suggestion",
+        title: "Événements",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SuggestionPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/suggestion.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const TutorPaymentRequestPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/payment_request.png",
-            height: 70,
-          ),
-          title: "Demandes de paiment",
+        title: "Boite à Suggestion",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TutorPaymentRequestPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/payment_request.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LibraryListPage(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/library.png",
-            height: 70,
-          ),
-          title: "BIBLIOTHÈQUE",
+        title: "Demandes de paiment",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LibraryListPage(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/library.png",
+          height: 70,
         ),
-        HomeMenuWidget(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const QuizEntryPoint(),
-              ),
-            );
-          },
-          image: Image.asset(
-            "assets/images/menus/quiz.png",
-            height: 70,
-          ),
-          title: "JEU DE QUIZ",
+        title: "BIBLIOTHÈQUE",
+      ),
+      HomeMenuWidget(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const QuizEntryPoint(),
+            ),
+          );
+        },
+        image: Image.asset(
+          "assets/images/menus/quiz.png",
+          height: 70,
         ),
-      ],
+        title: "JEU DE QUIZ",
+      ),
+    ];
+    return buildModernMenuGrid(context, menuItems);
+  }
+  Widget buildModernMenuGrid(BuildContext context, List<Widget> menuItems) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+            theme.colorScheme.surface,
+            theme.colorScheme.surface.withValues(alpha: 0.95),
+          ]
+              : [
+            Colors.grey.shade50,
+            Colors.white,
+          ],
+        ),
+      ),
+      child: GridView.count(
+        primary: false,
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        padding: const EdgeInsets.fromLTRB(12, 40, 12, 40),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.95,
+        children: menuItems,
+      ),
     );
   }
 }

@@ -11,7 +11,6 @@ class UserIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -90,37 +89,34 @@ class UserIntro extends StatelessWidget {
 
                         // École
                         Obx((){
-                          return FutureBuilder<Map<String, dynamic>?>(
-                            future: authController.getSchool(),
-                            builder: (context, schoolSnapshot) {
-                              if (!schoolSnapshot.hasData ||
-                                  schoolSnapshot.data?['name'] == null) {
-                                return const SizedBox.shrink();
-                              }
 
-                              return Row(
-                                children: [
-                                  Icon(
-                                    Icons.school_rounded,
-                                    size: 14,
-                                    color: colorScheme.primary,
+                          final authController = Get.find<AuthController>();
+                          if (authController.currentSchool.value == null ||
+                              authController.currentSchool.value?['name'] == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Row(
+                            children: [
+                              Icon(
+                                Icons.school_rounded,
+                                size: 14,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  authController.currentSchool.value!['name'],
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: colorScheme.onSurface.withValues(alpha:0.7),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      schoolSnapshot.data!['name'],
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface.withValues(alpha:0.7),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           );
                         }),
 
@@ -128,37 +124,34 @@ class UserIntro extends StatelessWidget {
 
                         // Année académique
                         Obx((){
-                          return FutureBuilder<Map<String, dynamic>?>(
-                            future: authController.getAcademic(),
-                            builder: (context, academicSnapshot) {
-                              if (!academicSnapshot.hasData ||
-                                  academicSnapshot.data?['name'] == null) {
-                                return const SizedBox.shrink();
-                              }
 
-                              return Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today_rounded,
-                                    size: 12,
+                          final authController = Get.find<AuthController>();
+                          if (authController.currentAcademic.value == null ||
+                              authController.currentAcademic.value?['name'] == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 12,
+                                color: colorScheme.onSurface.withValues(alpha:0.5),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  authController.currentAcademic.value!['name'],
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                     color: colorScheme.onSurface.withValues(alpha:0.5),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      academicSnapshot.data!['name'],
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: colorScheme.onSurface.withValues(alpha:0.5),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           );
                         })
                       ],

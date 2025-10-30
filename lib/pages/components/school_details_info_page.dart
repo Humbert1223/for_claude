@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart' as get_x;
 import 'package:novacole/components/model_photo_widget.dart';
 import 'package:novacole/controllers/auth_controller.dart';
-import 'package:novacole/models/user_model.dart';
 
 class SchoolDetailsInfoPage extends StatefulWidget {
   final Widget? child;
@@ -22,15 +21,7 @@ class SchoolDetailsInfoPageState extends State<SchoolDetailsInfoPage> {
   final authController = get_x.Get.find<AuthController>();
   @override
   void initState() {
-    UserModel.fromLocalStorage().then((user) {
-      authController.getSchool().then((sc) {
-        if (sc != null) {
-          setState(() {
-            school = sc;
-          });
-        }
-      });
-    });
+    school = authController.currentSchool.value;
     super.initState();
   }
 

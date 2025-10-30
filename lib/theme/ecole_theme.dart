@@ -7,6 +7,7 @@ ColorScheme lightThemeColors(context) {
     onPrimary: Colors.white,
     surface: Colors.white,
     onSurface: Color(0xff1a1a1a),
+    onPrimaryContainer: Color(0xff9a9a9a),
     primaryContainer: Color(0xffefefef),
     secondaryContainer: Color(0xfffafafa),
     surfaceContainerHighest: Color(0xffe8e8e8),

@@ -88,7 +88,7 @@ class TutorInfoWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: MediaQuery.of(context).size.width - 185,
+              width: MediaQuery.of(context).size.width - 200,
               child: Text(
                 "${tutor['full_name']}",
                 style: const TextStyle(
