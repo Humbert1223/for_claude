@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
 import 'package:novacole/models/master_crud_model.dart';
-import 'package:novacole/utils/constants.dart';
 
 class HomeSlider extends StatefulWidget {
   const HomeSlider({super.key});
@@ -13,28 +13,11 @@ class HomeSlider extends StatefulWidget {
 
 class HomeSliderState extends State<HomeSlider> {
   List<Widget> _sliderItems = [];
-  bool _isLoading = true;
-
-  final List<String> _defaultImages = [
-    'image_1.webp',
-    'image_2.jpeg',
-    'image_3.jpg',
-    'image_5.jpg',
-    'image_22.jpg',
-    'image_33.jpg',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _initializeSlider();
     _loadAdvertisements();
-  }
-
-  void _initializeSlider() {
-    _sliderItems = _defaultImages
-        .map((image) => _buildSliderItem('$kAppStorageUrl/sliders/images/$image'))
-        .toList();
   }
 
   Future<void> _loadAdvertisements() async {
@@ -46,14 +29,11 @@ class HomeSliderState extends State<HomeSlider> {
           _sliderItems = ads
               .map((ad) => _buildSliderItem(ad['image_url'] as String))
               .toList();
-          _isLoading = false;
         });
-      } else if (mounted) {
-        setState(() => _isLoading = false);
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      if(kDebugMode){
+        print(e);
       }
     }
   }
