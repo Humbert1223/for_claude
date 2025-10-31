@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:novacole/components/loading_indicator.dart';
-import 'package:novacole/components/tag_widget.dart';
 import 'package:novacole/controllers/auth_controller.dart';
 import 'package:novacole/models/master_crud_model.dart';
 
@@ -24,6 +22,7 @@ class UpdateEmailPageState extends State<UpdateEmailPage> {
 
   @override
   void initState() {
+    super.initState();
     authController.fromServer().then((currentUser) {
       setState(() {
         user = currentUser;
@@ -31,109 +30,142 @@ class UpdateEmailPageState extends State<UpdateEmailPage> {
       });
       _emailController.text = user?['email'] ?? '';
     });
-    super.initState();
   }
 
   Future<void> _updateEmail() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
+
       Map<String, dynamic>? response = await MasterCrudModel.patch(
         '/auth/users/${user?['id']}',
         {'email': _emailController.text},
       );
+
       if (response != null) {
         await authController.refreshUser();
         setState(() {
           user = response;
           _isEdit = false;
         });
+        _showSuccessSnackBar('Email mis à jour avec succès');
       }
-      setState(() {
-        _isLoading = false;
-      });
+
+      setState(() => _isLoading = false);
     }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Modifier votre email",
-        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text("Modifier votre email"),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 20),
-                        padding: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withAlpha(100)),
-                        child: Icon(
-                          Icons.email_outlined,
-                          size: 100,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero Icon
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                          Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      "Si vous modifier votre email, vous devez à nouveau le vérifier avant de recevoir des notifications",
-                      style: TextStyle(fontSize: 13),
+                    child: Icon(
+                      Icons.email_outlined,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(height: 8),
-                    const Text("Email"),
-                    emailWidget()
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : const SizedBox(
-                      height: 50,
-                    ),
-              _isEdit
-                  ? Padding(
-                      padding: const EdgeInsets.only(bottom: 24.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _updateEmail,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Enregistrer',
-                            style: TextStyle(fontSize: 16),
+                const SizedBox(height: 32),
+
+                // Info Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue.shade700),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Si vous modifiez votre email, vous devez à nouveau le vérifier avant de recevoir des notifications",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blue.shade900,
                           ),
                         ),
                       ),
-                    )
-                  : Container(),
-            ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Email Widget
+                emailWidget(),
+                const SizedBox(height: 32),
+
+                // Loading or Save Button
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_isEdit)
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _updateEmail,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Enregistrer',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -142,149 +174,305 @@ class UpdateEmailPageState extends State<UpdateEmailPage> {
 
   Widget emailWidget() {
     if (_isFetching) {
-      return const LoadingIndicator();
-    } else {
-      if (_isEdit == false) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (!_isEdit) {
+      final isVerified = user?['email_verified_at'] != null;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
           children: [
             ListTile(
-              leading: const Icon(Icons.email_outlined),
+              contentPadding: const EdgeInsets.all(16),
+              leading: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.email_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
               title: Text(
                 user?['email'] ?? '(Vide)',
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
                 ),
               ),
               trailing: IconButton(
-                onPressed: () {
-                  setState(() {
-                    _isEdit = true;
-                  });
-                },
-                icon: const Icon(Icons.edit),
+                onPressed: () => setState(() => _isEdit = true),
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.edit_rounded,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ),
-            InkWell(
-              onTap: () async {
-                if (user?['email_verified_at'] == null) {
-                  await MasterCrudModel.post(
-                    '/auth/send-email-verification-code',
-                    data: {"user_id": user?['id']},
-                  );
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return SimpleDialog(
-                        title: const Text(
-                          'Valider votre email',
-                          style: TextStyle(fontSize: 18),
+            if (!isVerified) const Divider(height: 1),
+            if (!isVerified)
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                  onTap: () => _verifyEmail(),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.orange,
+                            size: 20,
+                          ),
                         ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: Column(
-                              children: [
-                                const Text(
-                                    'Un code de vérification à 6 chiffres vous a été envoyé par mail.'),
-                                TextFormField(
-                                  controller: _codeController,
-                                  decoration: const InputDecoration(
-                                    hintText: "Entre le code à 6 chiffres",
-                                    border: UnderlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Colors.grey),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      if (_codeController.text.length == 6) {
-                                        Map<String, dynamic>? response =
-                                            await MasterCrudModel.post(
-                                          '/auth/verify-email',
-                                          data: {
-                                            'code': _codeController.text,
-                                            "user_id": user?['id']
-                                          },
-                                        );
-                                        if (response != null) {
-                                          setState(() {
-                                            user = response;
-                                          });
-                                          Navigator.of(context).pop();
-                                        }
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          Theme.of(context).colorScheme.primary,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Enregistrer',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Non vérifié - Cliquez pour valider',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange,
                             ),
-                          )
-                        ],
-                      );
-                    },
-                    barrierDismissible: false,
-                  );
-                }
-              },
-              child: TagWidget(
-                title: Row(
-                  mainAxisSize: MainAxisSize.min,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.orange),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
                   children: [
-                    Icon(
-                        user?['email_verified_at'] == null
-                            ? Icons.warning_amber
-                            : Icons.check_box_outlined,
-                        color: Colors.white),
+                    const Icon(Icons.verified_rounded, color: Colors.green, size: 20),
+                    const SizedBox(width: 12),
                     Text(
-                      user?['email_verified_at'] != null
-                          ? 'Vérifié'
-                          : 'Non verifié, cliquez pour valider',
-                      style: const TextStyle(color: Colors.white),
-                    )
+                      'Vérifié',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green.shade700,
+                      ),
+                    ),
                   ],
                 ),
-                color: user?['email_verified_at'] != null
-                    ? Colors.green
-                    : Colors.amber,
               ),
-            )
           ],
-        );
-      } else {
-        return TextFormField(
-          controller: _emailController,
-          decoration: const InputDecoration(
-            hintText: "Entre le nouveau email",
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey),
+        ),
+      );
+    }
+
+    // Edit Mode
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Nouveau email',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Veuillez entrer un nouveau email';
-            }
-            return null;
-          },
-        );
-      }
-    }
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              hintText: "Entrer le nouveau email",
+              prefixIcon: Icon(Icons.email_outlined, color: Theme.of(context).colorScheme.primary),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Veuillez entrer un nouveau email';
+              }
+              if (!value.contains('@')) {
+                return 'Veuillez entrer un email valide';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _verifyEmail() async {
+    await MasterCrudModel.post(
+      '/auth/send-email-verification-code',
+      data: {"user_id": user?['id']},
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _buildVerificationDialog(),
+    );
+  }
+
+  Widget _buildVerificationDialog() {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.mark_email_read_outlined,
+                size: 48,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Valider votre email',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Un code de vérification à 6 chiffres vous a été envoyé par mail.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _codeController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: 8),
+              decoration: InputDecoration(
+                hintText: "000000",
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              maxLength: 6,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('Annuler'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_codeController.text.length == 6) {
+                        Map<String, dynamic>? response = await MasterCrudModel.post(
+                          '/auth/verify-email',
+                          data: {
+                            'code': _codeController.text,
+                            "user_id": user?['id']
+                          },
+                        );
+                        if (response != null) {
+                          setState(() => user = response);
+                          Navigator.of(context).pop();
+                          _showSuccessSnackBar('Email vérifié avec succès');
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text('Vérifier', style: TextStyle(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

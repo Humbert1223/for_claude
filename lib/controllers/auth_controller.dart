@@ -10,59 +10,110 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:novacole/utils/api.dart';
 
 class AuthController extends GetxController {
-  // Observables
-  final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
+  // ==================== OBSERVABLES ====================
+
+  /// Utilisateur courant
+  final Rx<UserModel> currentUser = UserModel().obs;
+
+  /// État de chargement global
   final RxBool isLoading = false.obs;
+
+  /// Liste des permissions de l'utilisateur
   final RxList<String> permissions = <String>[].obs;
+
+  /// Comptes sauvegardés localement
   final RxList<UserModel> savedAccounts = <UserModel>[].obs;
-  final RxMap<String, dynamic> currentSchool = RxMap<String, dynamic>();
-  final RxMap<String, dynamic> currentAcademic = RxMap<String, dynamic>();
+
+  /// École courante (utilise RxMap pour la réactivité)
+  final RxMap<String, dynamic> currentSchool = <String, dynamic>{}.obs;
+
+  /// Année académique courante
+  final RxMap<String, dynamic> currentAcademic = <String, dynamic>{}.obs;
+
+  /// Message d'erreur (pour affichage réactif)
+  final RxString errorMessage = ''.obs;
+
+  // ==================== LIFECYCLE ====================
 
   @override
   void onInit() {
     super.onInit();
-    loadUserFromStorage();
-    loadSavedAccounts();
+    _initialize();
   }
 
-  // Getters
+  /// Initialisation du controller
+  Future<void> _initialize() async {
+    await loadUserFromStorage();
+    await loadSavedAccounts();
+  }
+
+  @override
+  void onClose() {
+    // Nettoyage si nécessaire
+    super.onClose();
+  }
+
+  // ==================== GETTERS RÉACTIFS ====================
+
+  /// Vérifie si l'utilisateur est connecté
   bool get isLoggedIn => isAuthenticated();
-  String? get userId => currentUser.value?.id;
-  String? get userToken => currentUser.value?.token;
-  String? get userName => currentUser.value?.name;
-  String? get userEmail => currentUser.value?.email;
+
+  /// ID de l'utilisateur
+  String? get userId => currentUser.value.id;
+
+  /// Token d'authentification
+  String? get userToken => currentUser.value.token;
+
+  /// Nom de l'utilisateur
+  String? get userName => currentUser.value.name;
+
+  /// Email de l'utilisateur
+  String? get userEmail => currentUser.value.email;
+
+  /// Type de compte actuel
+  String? get accountType => currentUser.value.accountType;
+
+  /// Vérifie si des comptes sont sauvegardés
+  bool get hasSavedAccounts => savedAccounts.isNotEmpty;
+
+  /// Nombre de comptes sauvegardés
+  int get savedAccountsCount => savedAccounts.length;
 
   // ==================== PERMISSION CHECKS ====================
 
   /// Vérifie si l'utilisateur a une permission spécifique
   bool hasPermission(String permission) {
-    return currentUser.value?.accountType != 'staff' || permissions.contains(permission);
+    return currentUser.value.accountType != 'staff' ||
+        permissions.contains(permission);
   }
 
   /// Vérifie si l'utilisateur a AU MOINS UNE des permissions
   bool hasAny(List<String> perms) {
-    return  currentUser.value?.accountType != 'staff' || perms.any((p) => permissions.contains(p));
+    return currentUser.value.accountType != 'staff' ||
+        perms.any((p) => permissions.contains(p));
   }
 
   /// Vérifie si l'utilisateur a TOUTES les permissions
   bool hasAll(List<String> perms) {
-    return  currentUser.value?.accountType != 'staff' || perms.every((p) => permissions.contains(p));
+    return currentUser.value.accountType != 'staff' ||
+        perms.every((p) => permissions.contains(p));
   }
 
   /// Vérifie si l'utilisateur a un type de compte spécifique
   bool isAccountType(String type) {
     final user = currentUser.value;
-    if (user == null || user.schools == null) return false;
+    if (user.schools == null) return false;
 
     return user.schools!.any((s) =>
     s['school_id'] == user.school &&
-        s['account_type'] == type) &&
-        user.accountType == type;
+        s['account_type'] == type
+    ) && user.accountType == type;
   }
 
   /// Vérifie si l'utilisateur est connecté
   bool isAuthenticated() {
-    return currentUser.value != null && currentUser.value?.token != null && currentUser.value?.token!.isNotEmpty == true;
+    return currentUser.value.token != null &&
+        currentUser.value.token!.isNotEmpty;
   }
 
   // ==================== AUTHENTICATION ====================
@@ -71,6 +122,7 @@ class AuthController extends GetxController {
   Future<bool> login(String login, String password) async {
     try {
       isLoading.value = true;
+      errorMessage.value = '';
 
       Map<String, dynamic>? device = await _getDeviceDetails();
       Map<String, String?> data = {
@@ -84,7 +136,7 @@ class AuthController extends GetxController {
         data: data,
       );
 
-      if (response != null) {
+      if (response != null && response['user'] != null) {
         var userData = Map<String, dynamic>.from(response['user']);
         UserModel user = UserModel.fromMap(userData);
 
@@ -92,22 +144,19 @@ class AuthController extends GetxController {
         await setCurrentUser(user);
         await addToSavedAccounts(user);
 
+        // Mettre à jour le token FCM
+        await updateFcmToken();
+
         return true;
       }
 
-      Get.snackbar(
-        'Erreur',
-        'Erreur de connexion !',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      errorMessage.value = 'Identifiants incorrects';
+      _showError('Erreur', 'Erreur de connexion !');
       return false;
 
     } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      errorMessage.value = e.toString();
+      _showError('Erreur', e.toString());
       return false;
     } finally {
       isLoading.value = false;
@@ -117,53 +166,92 @@ class AuthController extends GetxController {
   /// Déconnexion
   Future<void> logout() async {
     try {
+      isLoading.value = true;
+
       final user = currentUser.value;
-      if (user != null) {
-        await _removeFromSavedAccounts(user);
+
+      // Supprimer le token FCM côté serveur
+      try {
+        await MasterCrudModel.patch('/auth/user/update-fcm-token', {
+          'device_fcm_token': null,
+        });
+      } catch (e) {
+        // Ignorer les erreurs de suppression du token
       }
 
+      // Retirer des comptes sauvegardés
+      await _removeFromSavedAccounts(user);
+
+      // Nettoyer le stockage local
       SharedPreferences prefs = await Http().local();
       await prefs.remove('auth_user');
 
-      currentUser.value = null;
+      // Réinitialiser les observables
+      currentUser.value = UserModel();
       permissions.clear();
+      currentSchool.clear();
+      currentAcademic.clear();
+      errorMessage.value = '';
 
+      // Rediriger vers la page de connexion
       Get.offAllNamed('/login');
 
     } catch (e) {
-      Get.snackbar('Erreur', 'Erreur lors de la déconnexion');
+      _showError('Erreur', 'Erreur lors de la déconnexion');
+    } finally {
+      isLoading.value = false;
     }
   }
 
+  /// Récupérer les données utilisateur depuis le serveur
   Future<Map<String, dynamic>?> fromServer() async {
-    return await MasterCrudModel.find('/auth/user');
+    try {
+      return await MasterCrudModel.find('/auth/user');
+    } catch (e) {
+      print('❌ Error fetching user from server: $e');
+      return null;
+    }
   }
 
   /// Rafraîchir les données utilisateur depuis le serveur
   Future<bool> refreshUser() async {
     try {
+      isLoading.value = true;
+
       Map<String, dynamic>? response = await fromServer();
 
       if (response != null) {
         // Conserver le token actuel
-        String? currentToken = currentUser.value?.token;
+        String? currentToken = currentUser.value.token;
         response['token'] = currentToken;
 
         UserModel user = UserModel.fromMap(response);
         await setCurrentUser(user);
+        await addToSavedAccounts(user);
+
         return true;
       }
+
       return false;
     } catch (e) {
+      print('❌ Error refreshing user: $e');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
+  /// Récupérer le token FCM actuel
   Future<String?> getCurrentFcmToken() async {
-    Map<String, dynamic>? token = await MasterCrudModel.post(
-      '/auth/user/sanctum/token',
-    );
-    return token?['device_fcm_token'];
+    try {
+      Map<String, dynamic>? token = await MasterCrudModel.post(
+        '/auth/user/sanctum/token',
+      );
+      return token?['device_fcm_token'];
+    } catch (e) {
+      print('❌ Error getting FCM token: $e');
+      return null;
+    }
   }
 
   /// Mettre à jour le token FCM
@@ -177,6 +265,7 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       // Firebase non disponible sur cette plateforme
+      print('ℹ️ Firebase not available: $e');
     }
   }
 
@@ -185,17 +274,23 @@ class AuthController extends GetxController {
   /// Sélectionner un compte sauvegardé
   Future<bool> switchAccount(String userId) async {
     try {
-      UserModel? account = savedAccounts.where(
+      isLoading.value = true;
+
+      UserModel? account = savedAccounts.firstWhereOrNull(
             (acc) => acc.id == userId,
-      ).firstOrNull;
+      );
 
       if (account != null) {
         await setCurrentUser(account);
         return true;
       }
+
       return false;
     } catch (e) {
+      _showError('Erreur', 'Impossible de changer de compte');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -205,6 +300,8 @@ class AuthController extends GetxController {
     required String schoolId,
   }) async {
     try {
+      isLoading.value = true;
+
       Map<String, dynamic>? response = await MasterCrudModel.patch(
         '/auth/user/school/update',
         {'school_id': schoolId, 'account_type': accountType},
@@ -216,15 +313,21 @@ class AuthController extends GetxController {
         await addToSavedAccounts(user);
         return true;
       }
+
       return false;
     } catch (e) {
+      _showError('Erreur', 'Impossible de changer d\'espace');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   /// Supprimer le compte
   Future<bool> deleteAccount(String password) async {
     try {
+      isLoading.value = true;
+
       var response = await MasterCrudModel.delete(
         userId ?? '__unknown__',
         'user',
@@ -235,40 +338,87 @@ class AuthController extends GetxController {
         await logout();
         return true;
       }
+
       return false;
     } catch (e) {
+      _showError('Erreur', 'Impossible de supprimer le compte');
       return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   // ==================== ACADEMIC & SCHOOL ====================
 
   /// Récupérer les informations de l'année académique
-  Future<void> _getAcademic() async {
+  Future<void> _getAcademic(UserModel? user) async {
     try {
-      if (currentUser.value == null || currentUser.value!.academic == null) return;
+      if (user == null || user.academic == null) {
+        currentAcademic.clear();
+        return;
+      }
 
+      // Vérifier le cache local
+      final local = await Http().local();
+      String? cached = local.getString('academic');
+
+      if (cached != null) {
+        final academic = jsonDecode(cached);
+        if (user.academic == academic['id']) {
+          currentAcademic.assignAll(academic);
+          return;
+        }
+      }
+
+      // Récupérer depuis le serveur
       Map<String, dynamic>? response = await MasterCrudModel('academic')
-          .get(currentUser.value!.academic!);
+          .get(user.academic!);
 
-      currentAcademic.value = response ?? {};
+      if (response != null) {
+        currentAcademic.assignAll(response);
+        await local.setString('academic', jsonEncode(response));
+      } else {
+        currentAcademic.clear();
+      }
     } catch (e) {
-      return;
+      print('❌ Error loading academic: $e');
+      currentAcademic.clear();
     }
   }
 
   /// Récupérer les informations de l'école
-  Future<void> _getSchool() async {
+  Future<void> _getSchool(UserModel? user) async {
     try {
-      final user = currentUser.value;
-      if (user == null || user.school == null) null;
+      if (user == null || user.school == null) {
+        currentSchool.clear();
+        return;
+      }
 
+      // Vérifier le cache local
+      final local = await Http().local();
+      String? cached = local.getString('school');
+
+      if (cached != null) {
+        final school = jsonDecode(cached);
+        if (user.school == school['id']) {
+          currentSchool.assignAll(school);
+          return;
+        }
+      }
+
+      // Récupérer depuis le serveur
       Map<String, dynamic>? response = await MasterCrudModel('school')
-          .get(user!.school!);
+          .get(user.school!);
 
-      currentSchool.value = response ?? {};
+      if (response != null) {
+        currentSchool.assignAll(response);
+        await local.setString('school', jsonEncode(response));
+      } else {
+        currentSchool.clear();
+      }
     } catch (e) {
-      return;
+      print('❌ Error loading school: $e');
+      currentSchool.clear();
     }
   }
 
@@ -276,18 +426,36 @@ class AuthController extends GetxController {
 
   /// Définir l'utilisateur courant
   Future<void> setCurrentUser(UserModel user) async {
-    if(user.token == null || user.token!.isEmpty){
-      final u = user.toMap();
-      u['token'] = currentUser.value?.token;
-      user = UserModel.fromMap(u);
+    try {
+      // Conserver le token si nécessaire
+      if (user.token == null || user.token!.isEmpty) {
+        final u = user.toMap();
+        u['token'] = currentUser.value.token;
+        user = UserModel.fromMap(u);
+      }
+
+      // Mettre à jour l'utilisateur et les permissions
+      currentUser.value = user;
+      permissions.value = user.permissions ?? [];
+
+      // Sauvegarder dans le stockage local
+      SharedPreferences prefs = await Http().local();
+      await prefs.setString('auth_user', jsonEncode(user.toMap()));
+
+      // Charger les données contextuelles en parallèle
+      await Future.wait([
+        _getAcademic(user),
+        _getSchool(user),
+      ]);
+
+      // Forcer la mise à jour de l'interface
+      currentUser.refresh();
+      permissions.refresh();
+
+    } catch (e) {
+      print('❌ Error setting current user: $e');
+      throw e;
     }
-    currentUser.value = user;
-    permissions.value = user.permissions ?? [];
-    // Sauvegarder dans le stockage local
-    SharedPreferences prefs = await Http().local();
-    await prefs.setString('auth_user', jsonEncode(user.toMap()));
-    await _getAcademic();
-    await _getSchool();
   }
 
   /// Charger l'utilisateur depuis le stockage
@@ -302,9 +470,22 @@ class AuthController extends GetxController {
 
         currentUser.value = user;
         permissions.value = user.permissions ?? [];
+
+        // Charger les données contextuelles
+        await Future.wait([
+          _getAcademic(user),
+          _getSchool(user),
+        ]);
+
+        // Forcer le rafraîchissement
+        currentUser.refresh();
+        permissions.refresh();
       }
     } catch (e) {
-      // Erreur de chargement
+      print('❌ Error loading user from storage: $e');
+      // En cas d'erreur, réinitialiser
+      currentUser.value = UserModel();
+      permissions.clear();
     }
   }
 
@@ -314,14 +495,17 @@ class AuthController extends GetxController {
       SharedPreferences prefs = await Http().local();
       String? accountsData = prefs.getString('auth_user_list');
 
-      if (accountsData != null) {
+      if (accountsData != null && accountsData.isNotEmpty) {
         List<dynamic> accountsList = jsonDecode(accountsData);
         savedAccounts.value = accountsList
             .map((acc) => UserModel.fromMap(acc))
             .toList();
+
+        savedAccounts.refresh();
       }
     } catch (e) {
-      // Erreur de chargement
+      print('❌ Error loading saved accounts: $e');
+      savedAccounts.clear();
     }
   }
 
@@ -332,18 +516,24 @@ class AuthController extends GetxController {
 
       int index = savedAccounts.indexWhere((acc) => acc.id == user.id);
       if (index != -1) {
+        // Mettre à jour le compte existant
         savedAccounts[index] = user;
       } else {
+        // Ajouter un nouveau compte
         savedAccounts.add(user);
       }
 
+      // Sauvegarder dans le stockage local
       SharedPreferences prefs = await Http().local();
       await prefs.setString(
         'auth_user_list',
         jsonEncode(savedAccounts.map((e) => e.toMap()).toList()),
       );
+
+      savedAccounts.refresh();
+
     } catch (e) {
-      // Erreur de sauvegarde
+      print('❌ Error adding to saved accounts: $e');
     }
   }
 
@@ -357,8 +547,11 @@ class AuthController extends GetxController {
         'auth_user_list',
         jsonEncode(savedAccounts.map((e) => e.toMap()).toList()),
       );
+
+      savedAccounts.refresh();
+
     } catch (e) {
-      // Erreur de suppression
+      print('❌ Error removing from saved accounts: $e');
     }
   }
 
@@ -381,9 +574,37 @@ class AuthController extends GetxController {
           'identifier': data.identifierForVendor!,
         };
       }
-    } on PlatformException {
+    } on PlatformException catch (e) {
+      print('❌ Error getting device details: $e');
       return null;
     }
     return null;
+  }
+
+  // ==================== HELPER METHODS ====================
+
+  /// Afficher un message d'erreur
+  void _showError(String title, String message) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  /// Vider toutes les données
+  Future<void> clearAllData() async {
+    currentUser.value = UserModel();
+    permissions.clear();
+    savedAccounts.clear();
+    currentSchool.clear();
+    currentAcademic.clear();
+    errorMessage.value = '';
+
+    SharedPreferences prefs = await Http().local();
+    await prefs.remove('auth_user');
+    await prefs.remove('auth_user_list');
+    await prefs.remove('school');
+    await prefs.remove('academic');
   }
 }

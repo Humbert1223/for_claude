@@ -20,7 +20,6 @@ import 'package:novacole/utils/api.dart';
 import 'package:novacole/utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:novacole/components/sub_menu_item.dart';
 
 @immutable

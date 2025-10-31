@@ -46,7 +46,7 @@ class SchoolSpaceSwitchState extends State<SchoolSpaceSwitch>
 
       setState(() {
         schools = List<Map<String, dynamic>>.from(schoolsData ?? []);
-        accounts = (authController.currentUser.value?.schools ?? []).where((ac){
+        accounts = (authController.currentUser.value.schools ?? []).where((ac){
           return schools.any((sc){
             return sc['id'] == ac['school_id'];
           });
@@ -76,7 +76,7 @@ class SchoolSpaceSwitchState extends State<SchoolSpaceSwitch>
       return _buildLoadingState();
     }
 
-    if (authController.currentUser.value == null || schools.isEmpty) {
+    if (schools.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -162,9 +162,8 @@ class SchoolSpaceSwitchState extends State<SchoolSpaceSwitch>
     return FadeTransition(
       opacity: _fadeAnimation,
       child: CustomScrollView(
-        primary: false,
         shrinkWrap: true, // Important: permet au CustomScrollView de s'adapter à son contenu
-        physics: const NeverScrollableScrollPhysics(), // Désactive le scroll interne
+        //physics: const NeverScrollableScrollPhysics(), // Désactive le scroll interne
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.all(16),
@@ -210,8 +209,8 @@ class SchoolSpaceSwitchState extends State<SchoolSpaceSwitch>
   }
 
   Widget _buildSchoolCard(Map<String, dynamic> account, int index) {
-    final isActive = account['account_type'] == authController.currentUser.value?.accountType &&
-        account['school_id'] == authController.currentUser.value?.school;
+    final isActive = account['account_type'] == authController.currentUser.value.accountType &&
+        account['school_id'] == authController.currentUser.value.school;
     final school = schools.firstWhereOrNull((sc){
       return sc['id'] == account['school_id'];
     });
