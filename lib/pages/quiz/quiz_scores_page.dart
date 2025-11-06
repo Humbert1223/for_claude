@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 import 'package:novacole/pages/quiz/models/quiz_user_model.dart';
 import 'package:novacole/pages/quiz/services/quiz_user_service.dart';
 import 'package:novacole/pages/quiz/quiz_home_page.dart';
@@ -235,20 +236,14 @@ class QuizScoresPageState extends State<QuizScoresPage>
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      floatingActionButton: FloatingActionButton(
-        heroTag: "backBtn",
+      floatingActionButton: ModernFloatingButton(
         onPressed: () {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const QuizHomePage()),
           );
         },
-        child: const RotatedBox(
-          quarterTurns: 2,
-          child: Icon(
-            FontAwesomeIcons.shareFromSquare,
-            color: Colors.red,
-          ),
-        ),
+        icon: FontAwesomeIcons.shareFromSquare,
+        color: Colors.red,
       ),
     );
   }

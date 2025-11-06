@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 import 'package:novacole/pages/quiz/models/quiz_user_model.dart';
 import 'package:novacole/pages/quiz/quiz_chapters_select.dart';
 import 'package:novacole/pages/quiz/quiz_discipline_select.dart';
@@ -288,61 +289,13 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
   Widget _buildUserHeader() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          _buildUserAvatar(),
-          const SizedBox(width: 12),
-          Expanded(child: _buildUserInfo()),
-          _buildChangeUserButton(),
-        ],
+      child: ModernUserCard(
+        userName: _currentUser!.name,
+        gamesCount: _currentUser!.scores?.length ?? 0,
+        onChangeUser: _changeUser,
       ),
     );
   }
-
-  /// Construit l'avatar de le joueur
-  Widget _buildUserAvatar() {
-    return CircleAvatar(
-      radius: 30,
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      child: Text(
-        _currentUser!.name[0].toUpperCase(),
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  /// Construit les informations de le joueur
-  Widget _buildUserInfo() {
-    final gamesCount = _currentUser!.scores?.length ?? 0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          _currentUser!.name,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          '$gamesCount ${gamesCount <= 1 ? "partie jouée" : "parties jouées"}',
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-        ),
-      ],
-    );
-  }
-
-  /// Construit le bouton de changement d'joueur
-  Widget _buildChangeUserButton() {
-    return IconButton(
-      onPressed: _changeUser,
-      icon: const Icon(Icons.swap_horiz, size: 30),
-      tooltip: 'Changer de joueur',
-    );
-  }
-
   /// Construit la section des paramètres
   Widget _buildSettings() {
     return Center(
@@ -374,7 +327,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton de sélection de niveau
   Widget _buildLevelButton() {
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _navigateToLevelSelect,
       child: _buildSettingTile(
         title: 'NIVEAU',
@@ -385,7 +338,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton de sélection de série
   Widget _buildSeriesButton() {
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _navigateToSeriesSelect,
       child: _buildSettingTile(
         title: 'SÉRIE',
@@ -397,7 +350,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton de sélection de discipline
   Widget _buildDisciplineButton() {
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _navigateToDisciplineSelect,
       child: _buildSettingTile(
         title: 'DISCIPLINE',
@@ -414,7 +367,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
         ? "${_selectedChapters.length} sélectionné${_selectedChapters.length > 1 ? 's' : ''}"
         : '[Sélectionner les chapitres]';
 
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _navigateToChaptersSelect,
       child: _buildSettingTile(
         title: 'CHAPITRES',
@@ -426,7 +379,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton du chronomètre
   Widget _buildTimerButton() {
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _toggleTimer,
       child: _buildToggleTile(
         title: 'CHRONOMÈTRER',
@@ -441,7 +394,7 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton du son
   Widget _buildSoundButton() {
-    return QuizGameButton(
+    return ModernGameButton(
       onPressed: _toggleSound,
       child: _buildToggleTile(
         title: 'SON ET MUSIQUE',
@@ -499,13 +452,10 @@ class _QuizSettingPageState extends State<QuizSettingPage> {
 
   /// Construit le bouton de retour
   Widget _buildBackButton() {
-    return FloatingActionButton(
-      heroTag: 'backBtn',
+    return ModernFloatingButton(
       onPressed: _navigateToHome,
-      child: const RotatedBox(
-        quarterTurns: 2,
-        child: Icon(FontAwesomeIcons.shareFromSquare, color: Colors.red),
-      ),
+      color: Colors.red,
+      icon: FontAwesomeIcons.shareFromSquare
     );
   }
 }

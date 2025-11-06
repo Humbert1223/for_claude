@@ -2,8 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart' as GetX;
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/main.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,8 +75,7 @@ class Http {
           }
 
           if (e.response?.statusCode == 401) {
-            final authController = GetX.Get.find<AuthController>();
-            authController.logout().then((value) {
+            authProvider.logout().then((value) {
               navigatorKey.currentState?.pushNamedAndRemoveUntil('/', (route) => false);
             });
           }

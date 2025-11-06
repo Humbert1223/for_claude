@@ -34,7 +34,7 @@ class SectionHeader extends StatelessWidget {
   final bool showDivider;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     this.icon,
@@ -44,7 +44,7 @@ class SectionHeader extends StatelessWidget {
     this.padding,
     this.titleStyle,
     this.showDivider = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -137,13 +137,13 @@ class SectionHeaderWithAccent extends StatelessWidget {
   final Color? accentColor;
 
   const SectionHeaderWithAccent({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     this.onActionTap,
     this.actionLabel,
     this.accentColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -84,7 +84,7 @@ String currency(dynamic number) {
     return '-';
   }
   return NumberFormat.currency(
-    symbol: 'F CFA',
+    symbol: 'F',
     decimalDigits: 0,
     locale: 'fr-FR',
   ).format(double.tryParse(number.toString()));

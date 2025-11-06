@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/user_model.dart';
+import 'package:provider/provider.dart';
 
 class UserIntro extends StatelessWidget {
   final VoidCallback? onTap;
@@ -15,138 +15,137 @@ class UserIntro extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    // Récupérer le controller une seule fois
-    final authController = Get.find<AuthController>();
 
-    return Obx(() {
-      final currentUser = authController.currentUser.value;
-      final currentSchool = authController.currentSchool;
-      final currentAcademic = authController.currentAcademic;
+    return Consumer<AuthProvider>(
+      builder: (context, authController, child) {
+        final currentUser = authController.currentUser;
+        final currentSchool = authController.currentSchool;
+        final currentAcademic = authController.currentAcademic;
 
-      // Vérification améliorée
-      if (!authController.isLoggedIn || currentUser.id == null) {
-        return const SizedBox.shrink();
-      }
+        // Vérification améliorée
+        if (!authController.isLoggedIn || currentUser.id == null) {
+          return const SizedBox.shrink();
+        }
 
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          splashColor: colorScheme.primary.withValues(alpha: 0.1),
-          highlightColor: colorScheme.primary.withValues(alpha: 0.05),
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                  colorScheme.primaryContainer.withValues(alpha: 0.5),
-                  colorScheme.primaryContainer.withValues(alpha: 0.3),
-                ]
-                    : [
-                  colorScheme.primary.withValues(alpha: 0.08),
-                  colorScheme.primary.withValues(alpha: 0.04),
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(16),
+            splashColor: colorScheme.primary.withValues(alpha: 0.1),
+            highlightColor: colorScheme.primary.withValues(alpha: 0.05),
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                    colorScheme.primaryContainer.withValues(alpha: 0.5),
+                    colorScheme.primaryContainer.withValues(alpha: 0.3),
+                  ]
+                      : [
+                    colorScheme.primary.withValues(alpha: 0.08),
+                    colorScheme.primary.withValues(alpha: 0.04),
+                  ],
+                ),
+                border: Border.all(
+                  color: isDark
+                      ? colorScheme.outline.withValues(alpha: 0.3)
+                      : colorScheme.primary.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  // Avatar avec badge en ligne
+                  _buildAvatar(
+                    currentUser,
+                    colorScheme,
+                    isDark,
+                  ),
+
+                  const SizedBox(width: 14),
+
+                  // Informations utilisateur
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Nom de l'utilisateur
+                        Text(
+                          currentUser.name ?? 'Utilisateur',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        // École (réactif aux changements de currentSchool)
+                        if (currentSchool.isNotEmpty &&
+                            currentSchool['name'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: _buildInfoRow(
+                              icon: Icons.school_rounded,
+                              text: currentSchool['name'].toString(),
+                              iconColor: colorScheme.primary,
+                              textColor:
+                              colorScheme.onSurface.withValues(alpha: 0.7),
+                              fontSize: 13,
+                            ),
+                          ),
+
+                        // Année académique (réactif aux changements de currentAcademic)
+                        if (currentAcademic.isNotEmpty &&
+                            currentAcademic['name'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: _buildInfoRow(
+                              icon: Icons.calendar_today_rounded,
+                              text: currentAcademic['name'].toString(),
+                              iconColor:
+                              colorScheme.onSurface.withValues(alpha: 0.5),
+                              textColor:
+                              colorScheme.onSurface.withValues(alpha: 0.5),
+                              fontSize: 12,
+                              iconSize: 12,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // Chevron indicateur
+                  if (onTap != null)
+                    Container(
+                      margin: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: colorScheme.primary,
+                      ),
+                    ),
                 ],
               ),
-              border: Border.all(
-                color: isDark
-                    ? colorScheme.outline.withValues(alpha: 0.3)
-                    : colorScheme.primary.withValues(alpha: 0.15),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Avatar avec badge en ligne
-                _buildAvatar(
-                  currentUser,
-                  colorScheme,
-                  isDark,
-                ),
-
-                const SizedBox(width: 14),
-
-                // Informations utilisateur
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Nom de l'utilisateur
-                      Text(
-                        currentUser.name ?? 'Utilisateur',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
-                          letterSpacing: 0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      // École (réactif aux changements de currentSchool)
-                      if (currentSchool.isNotEmpty &&
-                          currentSchool['name'] != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: _buildInfoRow(
-                            icon: Icons.school_rounded,
-                            text: currentSchool['name'].toString(),
-                            iconColor: colorScheme.primary,
-                            textColor:
-                            colorScheme.onSurface.withValues(alpha: 0.7),
-                            fontSize: 13,
-                          ),
-                        ),
-
-                      // Année académique (réactif aux changements de currentAcademic)
-                      if (currentAcademic.isNotEmpty &&
-                          currentAcademic['name'] != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: _buildInfoRow(
-                            icon: Icons.calendar_today_rounded,
-                            text: currentAcademic['name'].toString(),
-                            iconColor:
-                            colorScheme.onSurface.withValues(alpha: 0.5),
-                            textColor:
-                            colorScheme.onSurface.withValues(alpha: 0.5),
-                            fontSize: 12,
-                            iconSize: 12,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // Chevron indicateur
-                if (onTap != null)
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.chevron_right_rounded,
-                      size: 20,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-              ],
             ),
           ),
-        ),
-      );
-    });
+        );
+      });
   }
 
   /// Widget pour afficher une ligne d'information (école, année)
@@ -302,99 +301,99 @@ class UserIntroCompact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Obx(() {
-      final currentUser = authController.currentUser.value;
+    return Consumer<AuthProvider>(
+      builder: (context, authController, child) {
+        final currentUser = authController.currentUser;
 
-      // Vérification améliorée
-      if (!authController.isLoggedIn || currentUser.id == null) {
-        return const SizedBox.shrink();
-      }
+        // Vérification améliorée
+        if (!authController.isLoggedIn || currentUser.id == null) {
+          return const SizedBox.shrink();
+        }
 
-      final imageProvider = currentUser.avatar == null ||
-          currentUser.avatar!.isEmpty
-          ? const AssetImage('assets/images/person.jpeg') as ImageProvider
-          : CachedNetworkImageProvider(
-        currentUser.avatar!,
-        cacheKey: currentUser.avatar,
-      );
+        final imageProvider = currentUser.avatar == null ||
+            currentUser.avatar!.isEmpty
+            ? const AssetImage('assets/images/person.jpeg') as ImageProvider
+            : CachedNetworkImageProvider(
+          currentUser.avatar!,
+          cacheKey: currentUser.avatar,
+        );
 
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Hero(
-                  tag: 'user_avatar_compact_${currentUser.id}',
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        width: 2,
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Hero(
+                    tag: 'user_avatar_compact_${currentUser.id}',
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
                       ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: colorScheme.primaryContainer,
-                            child: Icon(
-                              Icons.person_rounded,
-                              size: 24,
-                              color: colorScheme.primary,
-                            ),
-                          );
-                        },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image(
+                          image: imageProvider,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: colorScheme.primaryContainer,
+                              child: Icon(
+                                Icons.person_rounded,
+                                size: 24,
+                                color: colorScheme.primary,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        currentUser.name ?? 'Utilisateur',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          currentUser.name ?? 'Utilisateur',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'Voir le profil',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.primary,
+                        Text(
+                          'Voir le profil',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.primary,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      });
   }
 }
 
@@ -406,21 +405,20 @@ class UserIntroWithLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    return Consumer<AuthProvider>(
+      builder: (context, authController, child) {
+        // Afficher un skeleton pendant le chargement
+        if (authController.isLoading &&
+            !authController.isLoggedIn) {
+          return _buildSkeleton(colorScheme, isDark);
+        }
 
-    return Obx(() {
-      // Afficher un skeleton pendant le chargement
-      if (authController.isLoading.value &&
-          !authController.isLoggedIn) {
-        return _buildSkeleton(colorScheme, isDark);
-      }
-
-      // Afficher le widget normal une fois chargé
-      return UserIntro(onTap: onTap);
-    });
+        // Afficher le widget normal une fois chargé
+        return UserIntro(onTap: onTap);
+      });
   }
 
   Widget _buildSkeleton(ColorScheme colorScheme, bool isDark) {

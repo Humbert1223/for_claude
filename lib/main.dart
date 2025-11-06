@@ -4,8 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
+import 'package:novacole/controllers/auth_provider.dart';
+import 'package:novacole/core/services/navigator_service.dart';
 import 'package:novacole/firebase_options.dart';
 import 'package:novacole/pages/quiz/services/quiz_user_service.dart';
 import 'package:novacole/push_notification_service.dart';
@@ -34,8 +35,6 @@ void main() async {
 
   await InAppUpdateService.checkForUpdate();
 
-  Get.put(AuthController());
-
   runApp(
     EasyLocalization(
       supportedLocales: [Locale('en'), Locale('fr')],
@@ -43,7 +42,7 @@ void main() async {
       fallbackLocale: const Locale('en'),
       useOnlyLangCode: true,
       startLocale: Locale(Intl.shortLocale(Intl.getCurrentLocale())),
-      child: const EcoleApp(),
+      child: Phoenix(child: const EcoleApp()),
     ),
   );
 }
@@ -81,7 +80,9 @@ class EcoleAppState extends State<EcoleApp> {
         Map<String, dynamic> lastNotification = jsonDecode(
           lastNotificationString,
         );
-        Get.toNamed('/notification', arguments: lastNotification);
+
+        //todo: Ajouter les données dans le local storage
+        NavigationService.navigateTo('/notification');
       }
     });
   }
@@ -98,23 +99,29 @@ class EcoleAppState extends State<EcoleApp> {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(systemNavigationBarColor: Colors.transparent),
     );
-    return ChangeNotifierProvider(
-      create: (_) => ThemeModel(),
-      child: Consumer<ThemeModel>(
-        builder: (context, ThemeModel notifier, child) {
-          return GetMaterialApp(
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            navigatorKey: navigatorKey,
-            debugShowCheckedModeBanner: true,
-            title: kAppName,
-            theme: notifier.isDark ? darkTheme(context) : lightTheme(context),
-            routes: routes,
-            initialRoute: '/',
-          );
-        },
-      ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: AuthProvider.instance,
+        ),
+        // ThemeModel
+        ChangeNotifierProvider(
+          create: (_) => ThemeModel(),
+        ),
+      ],
+      child: Consumer<ThemeModel>(builder: (context, themeModel, child){
+        return MaterialApp(
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: true,
+          theme: themeModel.isDark ? darkTheme(context) : lightTheme(context),
+          title: kAppName,
+          routes: routes,
+          initialRoute: '/',
+        );
+      }),
     );
   }
 }

@@ -31,12 +31,6 @@ class CustomizeBulletinTemplatePageState
       'default': true,
     },
     {
-      'field': 'show_school_logo',
-      'type': 'boolean',
-      'name': "Afficher le logo de l'établissement (si disponible)",
-      'default': true,
-    },
-    {
       'field': 'show_absence_count',
       'type': 'boolean',
       'name': "Afficher le nombre d'heure d'absence des élèves",
@@ -59,6 +53,17 @@ class CustomizeBulletinTemplatePageState
       'type': 'boolean',
       'name': 'Afficher la signature du titulaire de la classe',
       'default': true,
+    },
+    {
+      'field': 'show_school_logo',
+      'type': 'radio',
+      'options': [
+        {'label': 'Ne pas afficher', 'value': 'none'},
+        {'label': "Logo de l'établissement", 'value': 'logo'},
+        {'label': "Photo de l'élève", 'value': 'student'},
+      ],
+      'name': "Afficher le logo de l'établissement / Photo de l'élève (si disponible)",
+      'default': 'logo',
     },
     {
       'field': 'director_title',

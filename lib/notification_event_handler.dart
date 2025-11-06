@@ -2,9 +2,8 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/hive/mark.dart';
 import 'package:novacole/services/assessment_sync_service.dart';
 import 'package:novacole/services/classe_sync_service.dart';
@@ -17,10 +16,9 @@ class NotificationEventHandler {
     final event = message.data['data_value'];
     switch (event) {
       case NotificationEventType.roleChanged:
-        final authController = Get.find<AuthController>();
-        authController.refreshUser();
+        await authProvider.refreshUser();
         if (kDebugMode) {
-          print("Event: User refreshed !");
+          print("Event: Role updated !");
         }
         break;
       case NotificationEventType.assessmentChanged:
@@ -47,11 +45,8 @@ class NotificationEventHandler {
           final metaData = jsonDecode(metaJsonString);
           if(metaData != null && metaData['mark'] != null){
             if(['update', 'create', 'restore'].contains(metaData['action'])){
-            final authController = Get.find<AuthController>();
-            Box<Mark> markBox = await HiveService.marksBox(authController.currentUser.value!);
-             Obx((){
-               return MarkSyncService.upsertMark(markBox, metaData['mark']);
-             });
+            Box<Mark> markBox = await HiveService.marksBox(authProvider.currentUser);
+            return MarkSyncService.upsertMark(markBox, metaData['mark']);
             }else{
               await MarkSyncService.syncAllNotesToApi();
             }

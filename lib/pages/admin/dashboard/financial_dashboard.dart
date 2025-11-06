@@ -91,7 +91,7 @@ class FinancialDashboardPageState extends State<FinancialDashboardPage>
               // Content
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0),
                   child: Column(
                     children: [
                       // Financial Panel Bar

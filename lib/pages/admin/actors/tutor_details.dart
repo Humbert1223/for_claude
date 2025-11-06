@@ -414,11 +414,19 @@ class TutorDetailsState extends State<TutorDetails>
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(
-            icon: Icons.people_alt_rounded,
-            label: 'Enfants',
-            value: '${widget.tutor['children_count'] ?? '0'}',
-            color: Colors.purple,
+          child: GestureDetector(
+            onTap: (){
+              _navigateToPage(
+                'Enfants',
+                TutorStudentListPage(tutor: widget.tutor),
+              );
+            },
+            child: _buildStatCard(
+              icon: Icons.people_alt_rounded,
+              label: 'Enfants',
+              value: '${List.from(widget.tutor['student_ids'] ?? []).length}',
+              color: Colors.purple,
+            ),
           ),
         ),
         const SizedBox(width: 12),

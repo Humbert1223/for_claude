@@ -121,6 +121,7 @@ class WeeklyCashTrendState extends State<WeeklyCashTrend> {
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

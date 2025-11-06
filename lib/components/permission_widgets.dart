@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 /// Widget qui affiche son enfant uniquement si l'utilisateur a la permission
 class PermissionGuard extends StatelessWidget {
@@ -23,13 +23,12 @@ class PermissionGuard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
 
-    return Obx(() {
-      bool hasAccess = _checkPermission(authController);
+    return Consumer<AuthProvider>(builder: (context, auth, child){
+      bool hasAccess = _checkPermission(auth);
 
       if (hasAccess) {
-        return child;
+        return this.child;
       } else {
         if(!showFallback){
           return SizedBox.shrink();
@@ -37,18 +36,18 @@ class PermissionGuard extends StatelessWidget {
         return fallback != null
             ? fallback!
             : Opacity(
-                opacity: 0.5,
-                child: Tooltip(
-                  message:
-                      'Vous n\'avez pas la permission d\'accéder à cette fonctionnalité',
-                  child: IgnorePointer(child: child),
-                ),
-              );
+          opacity: 0.3,
+          child: Tooltip(
+            message:
+            'Vous n\'avez pas la permission d\'accéder à cette fonctionnalité',
+            child: IgnorePointer(child: this.child),
+          ),
+        );
       }
     });
   }
 
-  bool _checkPermission(AuthController controller) {
+  bool _checkPermission(AuthProvider controller) {
     if (permission != null) {
       return controller.hasPermission(permission!);
     } else if (anyOf != null) {
@@ -96,21 +95,20 @@ class DisableIfNoPermission extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
 
-    return Obx(() {
-      final hasPermission = authController.hasPermission(permission);
+    return Consumer<AuthProvider>(builder: (context, auth, child) {
+      final hasPermission = auth.hasPermission(permission);
 
       Widget disabledChild = Opacity(
-        opacity: 0.5,
-        child: IgnorePointer(child: child),
+        opacity: 0.3,
+        child: IgnorePointer(child: this.child),
       );
 
       if (tooltip != null && !hasPermission) {
         disabledChild = Tooltip(message: tooltip!, child: disabledChild);
       }
 
-      return hasPermission ? child : disabledChild;
+      return hasPermission ? this.child : disabledChild;
     });
   }
 }
@@ -132,17 +130,15 @@ class PermissionBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
-
-    return Obx(() {
+    return Consumer<AuthProvider>(builder: (context, auth, child) {
       bool hasAccess = false;
 
       if (permission != null) {
-        hasAccess = authController.hasPermission(permission!);
+        hasAccess = auth.hasPermission(permission!);
       } else if (anyOf != null) {
-        hasAccess = authController.hasAny(anyOf!);
+        hasAccess = auth.hasAny(anyOf!);
       } else if (allOf != null) {
-        hasAccess = authController.hasAll(allOf!);
+        hasAccess = auth.hasAll(allOf!);
       }
 
       return builder(context, hasAccess);
@@ -152,37 +148,36 @@ class PermissionBuilder extends StatelessWidget {
 
 /// Mixin pour faciliter la vérification des permissions dans les widgets
 mixin PermissionMixin {
-  AuthController get authController => Get.find<AuthController>();
 
   bool hasPermission(String permission) {
-    return authController.hasPermission(permission);
+    return authProvider.hasPermission(permission);
   }
 
   bool hasAny(List<String> permissions) {
-    return authController.hasAny(permissions);
+    return authProvider.hasAny(permissions);
   }
 
   bool hasAll(List<String> permissions) {
-    return authController.hasAll(permissions);
+    return authProvider.hasAll(permissions);
   }
 
   bool isAccountType(String type) {
-    return authController.isAccountType(type);
+    return authProvider.isAccountType(type);
   }
 }
 
 /// Extension pour faciliter l'accès aux permissions depuis n'importe où
 extension PermissionExtension on BuildContext {
   bool hasPermission(String permission) {
-    return Get.find<AuthController>().hasPermission(permission);
+    return authProvider.hasPermission(permission);
   }
 
   bool hasAny(List<String> permissions) {
-    return Get.find<AuthController>().hasAny(permissions);
+    return authProvider.hasAny(permissions);
   }
 
   bool hasAll(List<String> permissions) {
-    return Get.find<AuthController>().hasAll(permissions);
+    return authProvider.hasAll(permissions);
   }
 }
 

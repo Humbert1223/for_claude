@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:novacole/components/loading_indicator.dart';
+import 'package:novacole/components/permission_widgets.dart';
 import 'package:novacole/models/master_crud_model.dart';
+import 'package:novacole/utils/constants.dart';
+import 'package:novacole/utils/permission_utils.dart';
 import 'package:novacole/utils/tools.dart';
 
 class PanelCardWidget extends StatelessWidget {
@@ -29,16 +32,15 @@ class PanelCardWidget extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     // Couleurs adaptatives
-    final effectiveBackgroundColor = backgroundColor ??
+    final effectiveBackgroundColor =
+        backgroundColor ??
         (isDark ? colorScheme.primaryContainer : colorScheme.surface);
 
     final titleColor = isDark
-        ? colorScheme.onSurface.withValues(alpha:0.7)
-        : colorScheme.onSurface.withValues(alpha:0.6);
+        ? colorScheme.onSurface.withValues(alpha: 0.7)
+        : colorScheme.onSurface.withValues(alpha: 0.6);
 
-    final valueColor = isDark
-        ? colorScheme.onSurface
-        : colorScheme.onSurface;
+    final valueColor = isDark ? colorScheme.onSurface : colorScheme.onSurface;
 
     final cardContent = Card(
       elevation: 0,
@@ -47,8 +49,8 @@ class PanelCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: isDark
-              ? colorScheme.outline.withValues(alpha:0.2)
-              : colorScheme.outline.withValues(alpha:0.15),
+              ? colorScheme.outline.withValues(alpha: 0.2)
+              : colorScheme.outline.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -62,10 +64,14 @@ class PanelCardWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (iconColor ?? colorScheme.primary).withValues(alpha:isDark ? 0.15 : 0.1),
+                color: (iconColor ?? colorScheme.primary).withValues(
+                  alpha: isDark ? 0.15 : 0.1,
+                ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: (iconColor ?? colorScheme.primary).withValues(alpha:isDark ? 0.3 : 0.2),
+                  color: (iconColor ?? colorScheme.primary).withValues(
+                    alpha: isDark ? 0.3 : 0.2,
+                  ),
                   width: 1,
                 ),
               ),
@@ -216,19 +222,37 @@ class AnalyticPanelBar extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: PanelCardWidget(
-                      icon: const Icon(FontAwesomeIcons.peopleGroup),
-                      iconColor: Colors.amber.shade700,
-                      title: 'Élèves',
-                      value: Text(number(data['students'] ?? 0)),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (context.hasPermission(
+                          PermissionName.viewAny(Entity.student),
+                        )) {
+                          Navigator.pushNamed(context, '/registrations');
+                        }
+                      },
+                      child: PanelCardWidget(
+                        icon: const Icon(FontAwesomeIcons.peopleGroup),
+                        iconColor: Colors.amber.shade700,
+                        title: 'Élèves',
+                        value: Text(number(data['students'] ?? 0)),
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: PanelCardWidget(
-                      icon: const Icon(FontAwesomeIcons.chalkboardUser),
-                      iconColor: Colors.blue.shade600,
-                      title: 'Enseignants',
-                      value: Text(number(data['teachers'] ?? 0)),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (context.hasPermission(
+                          PermissionName.viewAny(Entity.teacher),
+                        )) {
+                          Navigator.pushNamed(context, '/teachers');
+                        }
+                      },
+                      child: PanelCardWidget(
+                        icon: const Icon(FontAwesomeIcons.chalkboardUser),
+                        iconColor: Colors.blue.shade600,
+                        title: 'Enseignants',
+                        value: Text(number(data['teachers'] ?? 0)),
+                      ),
                     ),
                   ),
                 ],
@@ -237,19 +261,35 @@ class AnalyticPanelBar extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: PanelCardWidget(
-                      icon: const Icon(FontAwesomeIcons.peopleLine),
-                      iconColor: Colors.red.shade600,
-                      title: 'Classes',
-                      value: Text(number(data['classes'] ?? 0)),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (context.hasPermission(
+                          PermissionName.viewAny(Entity.classe),
+                        )) {
+                          Navigator.pushNamed(context, '/classes');
+                        }
+                      },
+                      child: PanelCardWidget(
+                        icon: const Icon(FontAwesomeIcons.peopleLine),
+                        iconColor: Colors.red.shade600,
+                        title: 'Classes',
+                        value: Text(number(data['classes'] ?? 0)),
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: PanelCardWidget(
-                      icon: const Icon(FontAwesomeIcons.handsHoldingChild),
-                      iconColor: Colors.green.shade600,
-                      title: 'Parents',
-                      value: Text(number(data['tutors'] ?? 0)),
+                    child: GestureDetector(
+                      onTap: () {
+                         if(context.hasPermission(PermissionName.viewAny(Entity.tutor))){
+                           Navigator.pushNamed(context, '/tutors');
+                         }
+                      },
+                      child: PanelCardWidget(
+                        icon: const Icon(FontAwesomeIcons.handsHoldingChild),
+                        iconColor: Colors.green.shade600,
+                        title: 'Parents',
+                        value: Text(number(data['tutors'] ?? 0)),
+                      ),
                     ),
                   ),
                 ],

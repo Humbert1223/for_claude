@@ -1,7 +1,5 @@
 import 'dart:convert';
-
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 
 class UserModel {
   final String? gender;
@@ -19,6 +17,8 @@ class UserModel {
   final List<Map<String, dynamic>>? schools;
   final String? token;
   final int? smsWallet;
+  final DateTime? phoneVerifiedAt;
+  final DateTime? emailVerifiedAt;
   final List<String>? preferredChannels;
   final List<String>? permissions; // NOUVEAU: Propriété pour les permissions
 
@@ -39,7 +39,9 @@ class UserModel {
     this.smsWallet,
     this.schools,
     this.countryIso,
-    this.permissions, // NOUVEAU
+    this.permissions,
+    this.emailVerifiedAt,
+    this.phoneVerifiedAt
   });
 
   /// Créer un UserModel depuis une Map (réponse API)
@@ -59,6 +61,8 @@ class UserModel {
       countryIso: map['country_iso'],
       school: map['school_id'],
       smsWallet: map['sms_wallet'],
+      emailVerifiedAt: DateTime.tryParse(map['email_verified_at']?? ''),
+      phoneVerifiedAt: DateTime.tryParse(map['phone_verified_at'] ?? ''),
       schools: map['schools'] != null
           ? List<Map<String, dynamic>>.from(map['schools'])
           : null,
@@ -91,7 +95,9 @@ class UserModel {
       'schools': schools,
       'sms_wallet': smsWallet,
       'country_iso': countryIso,
-      'permission_names': permissions, // Sauvegarder les permissions
+      'permission_names': permissions,
+      'email_verified_at': emailVerifiedAt?.toIso8601String(),
+      'phone_verified_at': phoneVerifiedAt?.toIso8601String()
     };
   }
 
@@ -114,6 +120,8 @@ class UserModel {
     int? smsWallet,
     List<String>? preferredChannels,
     List<String>? permissions,
+    DateTime? phoneVerifiedAt,
+    DateTime? emailVerifiedAt,
   }) {
     return UserModel(
       gender: gender ?? this.gender,
@@ -133,6 +141,8 @@ class UserModel {
       smsWallet: smsWallet ?? this.smsWallet,
       preferredChannels: preferredChannels ?? this.preferredChannels,
       permissions: permissions ?? this.permissions,
+      emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt,
+      phoneVerifiedAt: phoneVerifiedAt ?? this.phoneVerifiedAt,
     );
   }
 
@@ -271,8 +281,7 @@ class UserModel {
   }
 
   static Future<UserModel?> fromLocalStorage() async {
-    final authController = Get.find<AuthController>();
-    return authController.currentUser.value;
+    return authProvider.currentUser;
   }
 
 }

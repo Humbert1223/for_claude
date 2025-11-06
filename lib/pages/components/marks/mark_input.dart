@@ -47,6 +47,9 @@ class MarkInputState extends State<MarkInput> {
     setState(() {
       hasFocus = _focusNode.hasFocus;
     });
+    if(!hasFocus){
+      _processMark();
+    }
   }
 
   Future<void> _initializeBox() async {
@@ -263,17 +266,21 @@ class MarkInputState extends State<MarkInput> {
     final String valueStr = _controller.text.replaceAll(',', '.');
     final double? value = double.tryParse(valueStr);
 
-    if (_controller.text.isEmpty) {
-      final existingMark = markBox!.values
-          .where((mark) =>
-      mark.studentId == widget.student &&
-          mark.assessmentId == widget.assessment &&
-          mark.subjectId == widget.subject)
-          .firstOrNull;
+    final existingMark = markBox!.values
+        .where((mark) =>
+    mark.studentId == widget.student &&
+        mark.assessmentId == widget.assessment &&
+        mark.subjectId == widget.subject)
+        .firstOrNull;
 
+    if (_controller.text.isEmpty) {
       if (existingMark?.remoteId == null) {
         return;
       }
+    }
+
+    if(existingMark != null && existingMark.value == value){
+      return;
     }
 
     if (value != null && (value > 20 || value < 0)) {

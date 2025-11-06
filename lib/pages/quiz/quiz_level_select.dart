@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/models/master_crud_model.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 
 class QuizLevelSelect extends StatefulWidget {
   const QuizLevelSelect({super.key}); // Added const constructor
@@ -55,8 +56,12 @@ class QuizLevelSelectState extends State<QuizLevelSelect> {
                 ),
                 itemCount: levels.length,
                 itemBuilder: (context, index) {
-                  final level = levels[index];
-                  return _buildLevelCard(level);
+                  final item = levels[index];
+                  return ModernSelectionCard(
+                    title: item['name'],
+                    assetImage: const AssetImage('assets/images/degree.png'),
+                    onTap: () => Navigator.of(context).pop(item),
+                  );
                 },
               ),
             ),

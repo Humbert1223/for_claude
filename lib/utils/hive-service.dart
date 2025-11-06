@@ -14,6 +14,14 @@ class HiveService {
   static bool _initialized = false;
   static final Map<String, Box> _boxes = {};
 
+  HiveService._();
+
+  static void reinit() {
+    _initialized = false;
+    _boxes.clear();
+  }
+
+
   static Future<void> init({String? path }) async {
     if (_initialized) return;
 

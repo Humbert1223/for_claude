@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/permission_widgets.dart';
 import 'package:novacole/components/sub_menu_item.dart';
 import 'package:novacole/pages/admin/configuration/academic_data_page.dart';
@@ -38,12 +39,7 @@ class ConfigSubmenuPageState extends State<ConfigSubmenuPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
         title: const Text(
           'Configurations',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -109,7 +105,7 @@ class ConfigSubmenuPageState extends State<ConfigSubmenuPage> {
                 permission: PermissionName.viewAny(Entity.expense),
                 child: SubMenuWidget(
                   icon: FontAwesomeIcons.moneyBillTransfer,
-                  title: 'Lignes de dépenses',
+                  title: 'Types de dépense',
                   subtitle: 'Dépenses courantes à suivre',
                   onTap: () {
                     Navigator.of(context).push(

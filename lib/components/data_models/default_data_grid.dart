@@ -85,6 +85,7 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
     with SingleTickerProviderStateMixin {
   int _currentPage = 1;
   int _perPage = 15;
+  int? _total;
   int? _lastPage;
 
   final List<FilterRow> _filters = [];
@@ -204,6 +205,7 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
 
             _lastPage = result['last_page'] as int?;
             _perPage = result['per_page'] as int? ?? _perPage;
+            _total = result['total'] as int?;
 
             if (widget.paginate == PaginationValue.infiniteScroll) {
               _hasMore = _currentPage < (_lastPage ?? 0);
@@ -583,17 +585,102 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
 
   PreferredSizeWidget _buildAppBarBottom(ThemeData theme, bool isDark) {
     return PreferredSize(
-      preferredSize: Size.fromHeight(
-        widget.paginate == PaginationValue.infiniteScroll ? 80 : 140,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      preferredSize: const Size.fromHeight(140),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.colorScheme.primary.withValues(alpha:0.0),
+              Colors.black.withValues(alpha:0.05),
+            ],
+          ),
+        ),
         child: Column(
           children: [
-            _buildSearchBar(theme, isDark),
+            // Barre de recherche avec filtres intégrés
+            Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha:isDark ? 0.95 : 1),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha:0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  Icon(
+                    Icons.search_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.black87 : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher...',
+                        hintStyle: TextStyle(
+                          color: Colors.black.withValues(alpha:0.4),
+                          fontSize: 15,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (value) {
+                        setState(() {});
+                        if (value.isEmpty || value.length >= _minSearchLength) {
+                          _loadItems();
+                        }
+                      },
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {});
+                        _loadItems();
+                      },
+                      icon: Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: Colors.black.withValues(alpha:0.5),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 8),
+
+                  // Divider vertical
+                  Container(
+                    height: 32,
+                    width: 1,
+                    color: theme.colorScheme.outline.withValues(alpha:0.2),
+                  ),
+
+                  // Bouton filtre
+                  _buildCompactFilterButton(theme),
+                ],
+              ),
+            ),
+
+            // Contrôles de pagination compacts
             if (widget.paginate == PaginationValue.paginated) ...[
               const SizedBox(height: 12),
-              _buildPaginationControls(theme, isDark),
+              _buildCompactPaginationRow(theme, isDark),
             ],
           ],
         ),
@@ -601,151 +688,253 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
     );
   }
 
-  Widget _buildSearchBar(ThemeData theme, bool isDark) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isDark ? 0.1 : 1),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 20),
-          Icon(
-            Icons.search_rounded,
-            color: isDark ? Colors.white70 : theme.colorScheme.primary,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Rechercher...',
-                hintStyle: TextStyle(
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.4),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+// Nouveau bouton de filtre compact
+  Widget _buildCompactFilterButton(ThemeData theme) {
+    final hasFilters = _filters.isNotEmpty;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          margin: const EdgeInsets.all(8),
+          child: Material(
+            color: hasFilters
+                ? theme.colorScheme.primary
+                : theme.colorScheme.primary.withValues(alpha:0.1),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: _showFilterBottomSheet,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Icon(
+                  Icons.tune_rounded,
+                  color: hasFilters
+                      ? Colors.white
+                      : theme.colorScheme.primary,
+                  size: 20,
                 ),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
               ),
-              onChanged: (value) {
-                setState(() {});
-                if (value.isEmpty || value.length >= _minSearchLength) {
-                  _loadItems();
-                }
-              },
             ),
           ),
-          if (_searchController.text.isNotEmpty)
-            IconButton(
-              onPressed: () {
-                _searchController.clear();
-                setState(() {});
-                _loadItems();
-              },
-              icon: Icon(
-                Icons.close_rounded,
-                size: 20,
-                color: (isDark ? Colors.white : Colors.black).withValues(
-                    alpha: 0.5),
+        ),
+        if (hasFilters)
+          Positioned(
+            right: 2,
+            top: 2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade500,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.orange.withValues(alpha:0.5),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Text(
+                '${_filters.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          _buildFilterButton(theme, isDark),
-          const SizedBox(width: 8),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
-  Widget _buildFilterButton(ThemeData theme, bool isDark) {
-    final hasFilters = _filters.isNotEmpty;
-
-    return Container(
-      margin: const EdgeInsets.only(right: 4),
-      decoration: BoxDecoration(
-        gradient: hasFilters
-            ? LinearGradient(
-          colors: [
-            Colors.orange.shade400,
-            Colors.deepOrange.shade500,
-          ],
-        )
-            : null,
-        color: hasFilters
-            ? null
-            : (isDark ? Colors.white : theme.colorScheme.primary).withValues(
-            alpha: 0.15),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: hasFilters
-            ? [
-          BoxShadow(
-            color: Colors.orange.withValues(alpha: 0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ]
-            : [],
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          IconButton(
-            onPressed: _showFilterBottomSheet,
-            icon: Icon(
-              Icons.tune_rounded,
-              color: hasFilters
-                  ? Colors.white
-                  : (isDark ? Colors.white70 : theme.colorScheme.primary),
-              size: 22,
-            ),
-          ),
-          if (hasFilters)
-            Positioned(
-              right: 4,
-              top: 4,
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+// Nouvelle ligne de pagination compacte
+  Widget _buildCompactPaginationRow(ThemeData theme, bool isDark) {
+    return Row(
+      children: [
+        // Info page actuelle
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha:isDark ? 0.95 : 1),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha:0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
-                child: Text(
-                  '${_filters.length}',
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Page $_currentPage',
                   style: TextStyle(
-                    color: Colors.orange.shade600,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
                   ),
                 ),
-              ),
+                Text(
+                  ' / ${_lastPage ?? '?'}',
+                  style: TextStyle(
+                    color: Colors.black.withValues(alpha:0.5),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                VerticalDivider(width: 8, color: Colors.black.withValues(alpha:0.2)),
+                const SizedBox(width: 5),
+                Text(
+                  "Total: ${_total ?? ''} ",
+                  style: TextStyle(
+                    color: Colors.black.withValues(alpha:0.5),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
-        ],
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // Sélecteur d'éléments par page
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha:isDark ? 0.95 : 1),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha:0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownSearch<int>(
+            clickProps: ClickProps(borderRadius: BorderRadius.circular(12)),
+            mode: Mode.custom,
+            items: (f, cs) => _perPageOptions,
+            compareFn: (item1, item2) => item1 == item2,
+            selectedItem: _perPage,
+            popupProps: const PopupProps.menu(
+              menuProps: MenuProps(align: MenuAlign.bottomCenter),
+              fit: FlexFit.loose,
+            ),
+            dropdownBuilder: (ctx, selectedItem) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.filter_list_rounded,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$selectedItem',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.expand_more_rounded,
+                  size: 18,
+                  color: Colors.black.withValues(alpha:0.6),
+                ),
+              ],
+            ),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _perPage = value);
+                _loadItems();
+              }
+            },
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // Boutons de navigation
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha:isDark ? 0.95 : 1),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha:0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildCompactNavButton(
+                theme: theme,
+                icon: Icons.chevron_left_rounded,
+                enabled: _currentPage > 1,
+                onTap: () {
+                  setState(() => _currentPage -= 1);
+                  _loadItems();
+                },
+              ),
+              Container(
+                width: 1,
+                height: 24,
+                color: theme.colorScheme.outline.withValues(alpha:0.15),
+              ),
+              _buildCompactNavButton(
+                theme: theme,
+                icon: Icons.chevron_right_rounded,
+                enabled: _lastPage != null && _currentPage < _lastPage!,
+                onTap: () {
+                  setState(() => _currentPage += 1);
+                  _loadItems();
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+// Bouton de navigation compact
+  Widget _buildCompactNavButton({
+    required ThemeData theme,
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          child: Icon(
+            icon,
+            color: enabled
+                ? theme.colorScheme.primary
+                : Colors.black.withValues(alpha:0.2),
+            size: 20,
+          ),
+        ),
       ),
     );
   }
@@ -843,194 +1032,6 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
               ),
             ),
           ),
-    );
-  }
-
-  Widget _buildPaginationControls(ThemeData theme, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isDark ? 0.1 : 1),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary.withValues(alpha: 0.2),
-                      theme.colorScheme.primary.withValues(alpha: 0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.description_rounded,
-                  size: 18,
-                  color: isDark ? Colors.white70 : theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Page $_currentPage',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              Text(
-                ' / ${_lastPage ?? '-'}',
-                style: TextStyle(
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.5),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              _buildPerPageDropdown(theme, isDark),
-              const SizedBox(width: 8),
-              _buildPageNavigationButtons(theme, isDark),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPerPageDropdown(ThemeData theme, bool isDark) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: (isDark ? Colors.white : theme.colorScheme.primary).withValues(
-            alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: DropdownSearch<int>(
-        clickProps: ClickProps(borderRadius: BorderRadius.circular(14)),
-        mode: Mode.custom,
-        items: (f, cs) => _perPageOptions,
-        compareFn: (item1, item2) => item1 == item2,
-        selectedItem: _perPage,
-        popupProps: const PopupProps.menu(
-          menuProps: MenuProps(align: MenuAlign.bottomCenter),
-          fit: FlexFit.loose,
-        ),
-        dropdownBuilder: (ctx, selectedItem) =>
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$selectedItem',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.unfold_more_rounded,
-                  size: 18,
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                      alpha: 0.6),
-                ),
-              ],
-            ),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() => _perPage = value);
-            _loadItems();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildPageNavigationButtons(ThemeData theme, bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: (isDark ? Colors.white : theme.colorScheme.primary).withValues(
-            alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          _buildNavButton(
-            theme: theme,
-            isDark: isDark,
-            icon: Icons.chevron_left_rounded,
-            enabled: _currentPage > 1,
-            onTap: () {
-              setState(() => _currentPage -= 1);
-              _loadItems();
-            },
-          ),
-          Container(
-            width: 1,
-            height: 28,
-            color: (isDark ? Colors.white : Colors.black).withValues(
-                alpha: 0.1),
-          ),
-          _buildNavButton(
-            theme: theme,
-            isDark: isDark,
-            icon: Icons.chevron_right_rounded,
-            enabled: _lastPage != null && _currentPage < _lastPage!,
-            onTap: () {
-              setState(() => _currentPage += 1);
-              _loadItems();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavButton({
-    required ThemeData theme,
-    required bool isDark,
-    required IconData icon,
-    required bool enabled,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          child: Icon(
-            icon,
-            color: enabled
-                ? (isDark ? Colors.white70 : theme.colorScheme.primary)
-                : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
-            size: 24,
-          ),
-        ),
-      ),
     );
   }
 
@@ -1461,6 +1462,74 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
     required String title,
     required VoidCallback onTap,
   }) {
+
+    return OptionItem(icon: icon, iconColor: iconColor, title: title, onTap: onTap);
+  }
+
+  Widget _buildFab(ThemeData theme) {
+    return ScaleTransition(
+      scale: _fabAnimation,
+      child: PermissionGuard(
+        showFallback: false,
+        permission: 'create ${widget.dataModel}',
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withValues(alpha: 0.8),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: _navigateToAddForm,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            icon: const Icon(Icons.add_rounded, size: 28),
+            label: const Text(
+              'Ajouter',
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+class OptionItem extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final VoidCallback onTap;
+
+  const OptionItem({
+    super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -1509,9 +1578,7 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: title == 'Supprimer'
-                          ? iconColor
-                          : theme.colorScheme.onSurface,
+                      color: iconColor,
                     ),
                   ),
                 ),
@@ -1521,51 +1588,6 @@ class _DefaultDataGridState extends State<DefaultDataGrid>
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
                 ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFab(ThemeData theme) {
-    return ScaleTransition(
-      scale: _fabAnimation,
-      child: PermissionGuard(
-        showFallback: false,
-        permission: 'create ${widget.dataModel}',
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.8),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.5),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: FloatingActionButton.extended(
-            onPressed: _navigateToAddForm,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            icon: const Icon(Icons.add_rounded, size: 28),
-            label: const Text(
-              'Ajouter',
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
             ),
           ),
         ),

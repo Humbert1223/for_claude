@@ -1,8 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
-import 'package:novacole/models/user_model.dart';
+import 'package:novacole/controllers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class AccountSwitchWidget extends StatefulWidget {
   const AccountSwitchWidget({super.key});
@@ -12,89 +11,84 @@ class AccountSwitchWidget extends StatefulWidget {
 }
 
 class AccountSwitchWidgetState extends State<AccountSwitchWidget> {
-  String? currentUserId;
-  final authController = Get.find<AuthController>();
-  List<UserModel?> users = [];
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      users = authController.savedAccounts.toList();
-      currentUserId = authController.currentUser.value?.id;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.secondary,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.switch_account_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    'Changer de compte',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            ...accountList(),
-            const SizedBox(height: 20),
-          ],
+    return Consumer<AuthProvider>(builder: (context, auth, child){
+      return  Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
-      ),
-    );
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).colorScheme.primary,
+                            Theme.of(context).colorScheme.secondary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.switch_account_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text(
+                      'Changer de compte',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              ...accountList(auth),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
-  List<Widget> accountList() {
-    return users.asMap().entries.map((entry) {
+  List<Widget> accountList(AuthProvider auth) {
+    return auth.savedAccounts.asMap().entries.map((entry) {
       final index = entry.key;
       final user = entry.value;
-      final isActive = user?.id == currentUserId;
+      final isActive = user.id == auth.currentUser.id;
 
-      String? accountTypes = user?.schools
+      String? accountTypes = user.schools
           ?.map((e) => StringTranslateExtension(e['account_type'].toString()).tr())
           .toSet()
           .toList()
@@ -138,8 +132,8 @@ class AccountSwitchWidgetState extends State<AccountSwitchWidget> {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () {
-                if (currentUserId != user?.id && user != null && user.id != null) {
-                  authController.switchAccount(user.id!).then((value) {
+                if (auth.currentUser.id != user.id && user.id != null) {
+                  auth.switchAccount(user.id!).then((value) {
                     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                   });
                 }
@@ -150,7 +144,7 @@ class AccountSwitchWidgetState extends State<AccountSwitchWidget> {
                   children: [
                     // Avatar
                     Hero(
-                      tag: 'avatar_${user?.id}',
+                      tag: 'avatar_${user.id}',
                       child: Container(
                         width: 64,
                         height: 64,
@@ -183,7 +177,7 @@ class AccountSwitchWidgetState extends State<AccountSwitchWidget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            user?.name ?? '',
+                            user.name ?? '',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -192,7 +186,7 @@ class AccountSwitchWidgetState extends State<AccountSwitchWidget> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            user?.email ?? '',
+                            user.email ?? '',
                             style: TextStyle(
                               fontSize: 13,
                               color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.6),

@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
+import 'package:novacole/core/services/navigator_service.dart';
 import 'package:novacole/firebase_options.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/notification_event_handler.dart';
@@ -127,7 +127,8 @@ class PushNotificationService {
         'body': message.notification?.body,
         'data': message.data,
       };
-      Get.toNamed('/notification', arguments: data);
+      //todo: Ajouter les données dans le local storage
+      NavigationService.navigateTo('/notification');
     } catch (e) {
       if (kDebugMode) {
         print('Erreur lors de l\'ouverture de la notification: $e');
@@ -158,7 +159,9 @@ class PushNotificationService {
           'body': initialMessage.notification?.body,
           'data': initialMessage.data,
         };
-        Get.offNamed('/notification', arguments: data);
+
+        //todo: Ajouter les données dans le local storage
+        NavigationService.navigateAndRemoveUntil('/notification');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -249,7 +252,9 @@ class PushNotificationService {
     try {
       if (response.payload != null) {
         final data = jsonDecode(response.payload!);
-        Get.toNamed('/notification', arguments: data);
+
+        //todo: Ajouter les données dans le local storage
+        NavigationService.navigateTo('/notification');
       }
     } catch (e) {
       if (kDebugMode) {

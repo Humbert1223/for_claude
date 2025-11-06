@@ -17,16 +17,13 @@ import 'package:flutter/material.dart';
 
     @override
     Widget build(BuildContext context){
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-        child: TextField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            suffixIcon: suffixIcon??const SizedBox(),
-            prefixIcon: prefixIcon??const SizedBox(),
-            hintText: hintText,
-          ),
+      return TextField(
+        controller: controller,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          suffixIcon: suffixIcon??const SizedBox(),
+          prefixIcon: prefixIcon??const SizedBox(),
+          hintText: hintText,
         ),
       );
 

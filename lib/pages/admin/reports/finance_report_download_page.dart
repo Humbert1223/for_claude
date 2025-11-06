@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/json_schema.dart';
 import 'package:novacole/pages/admin/reports/widgets/report_download_widget.dart';
 import 'package:novacole/pages/admin/reports/widgets/report_types.dart';
@@ -316,10 +317,7 @@ class FinanceReportDownloadPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
       ),
       body: SafeArea(
         child: ListView.builder(

@@ -31,84 +31,92 @@ class HomeClasseLectureState extends State<HomeClasseLecture> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     if (_user == null || !_user!.isAccountType('teacher')) {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark
+              ? colorScheme.outline.withValues(alpha: 0.2)
+              : colorScheme.outline.withValues(alpha: 0.15),
+          width: 1,
+        ),
       ),
-      child: Column(
-        children: [
-          _buildHeader(),
-          const Divider(height: 1),
-          _buildCoursesList(),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(colorScheme),
+            const SizedBox(height: 16),
+            _buildCoursesList(colorScheme, isDark),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withValues(alpha:0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.chrome_reader_mode_outlined,
-                  color: Theme.of(context).primaryColor,
-                  size: 20,
-                ),
+  Widget _buildHeader(ColorScheme colorScheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
               ),
-              const SizedBox(width: 12),
-              const Text(
+              child: Icon(
+                Icons.chrome_reader_mode_outlined,
+                color: colorScheme.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
                 'Cours du jour',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PlaningPage()),
-              );
-            },
-            child: const Row(
-              children: [
-                Text('Voir tous', style: TextStyle(fontWeight: FontWeight.w600)),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_forward_ios, size: 12),
-              ],
             ),
+          ],
+        ),
+        TextButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PlaningPage()),
+            );
+          },
+          icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+          label: const Text(
+            'Voir tous',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
-        ],
-      ),
+          style: TextButton.styleFrom(
+            foregroundColor: colorScheme.primary,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildCoursesList() {
+  Widget _buildCoursesList(ColorScheme colorScheme, bool isDark) {
     return FutureBuilder(
       future: MasterCrudModel('timetable').search(
         paginate: '0',
@@ -130,26 +138,27 @@ class HomeClasseLectureState extends State<HomeClasseLecture> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 140,
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            child: Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
           );
         }
 
         if (!snapshot.hasData || List.from(snapshot.data!).isEmpty) {
-          return const SizedBox(
+          return SizedBox(
             height: 140,
             child: EmptyPage(
-              size: 32,
+              size: 40,
               icon: Icon(
                 FontAwesomeIcons.book,
-                color: Colors.grey,
-                size: 48,
+                color: colorScheme.onSurface.withValues(alpha: 0.3),
               ),
               sub: Text(
                 "Aucun cours aujourd'hui",
                 style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                  fontSize: 14,
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                  fontSize: 13,
                 ),
               ),
             ),
@@ -158,70 +167,107 @@ class HomeClasseLectureState extends State<HomeClasseLecture> {
 
         final courses = List<Map<String, dynamic>>.from(snapshot.data!);
         return SizedBox(
-          height: 160,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+          height: 180,
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: courses.length,
-            itemBuilder: (context, index) => _buildCourseCard(courses[index]),
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) => _buildCourseCard(
+              courses[index],
+              colorScheme,
+              isDark,
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildCourseCard(Map<String, dynamic> course) {
+  Widget _buildCourseCard(
+      Map<String, dynamic> course,
+      ColorScheme colorScheme,
+      bool isDark,
+      ) {
     final start = DateFormat('HH:mm').format(DateTime.parse(course['start_at']));
     final end = DateFormat('HH:mm').format(DateTime.parse(course['end_at']));
 
     return Container(
       width: MediaQuery.of(context).size.width * 0.75,
-      margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor.withValues(alpha:0.1),
-            Theme.of(context).primaryColor.withValues(alpha:0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: isDark
+            ? colorScheme.primaryContainer
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).primaryColor.withValues(alpha:0.2),
-          width: 1.5,
+          color: isDark
+              ? colorScheme.outline.withValues(alpha: 0.2)
+              : colorScheme.outline.withValues(alpha: 0.15),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              course['subject_name'] ?? '',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            // Titre du cours
+            Expanded(
+              child: Text(
+                course['subject_name'] ?? '',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: colorScheme.onSurface,
+                  height: 1.3,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Classe de ${course['classe_name']}',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
+
+            const SizedBox(height: 12),
+
+            // Nom de la classe
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              child: Text(
+                'Classe de ${course['classe_name']}'.toUpperCase(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
+                  color: colorScheme.primary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const Spacer(),
+
+            const SizedBox(height: 12),
+
+            // Horaire
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                color: isDark
+                    ? colorScheme.surfaceContainerHighest
+                    : Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -229,14 +275,15 @@ class HomeClasseLectureState extends State<HomeClasseLecture> {
                   Icon(
                     Icons.access_time_rounded,
                     size: 16,
-                    color: Theme.of(context).primaryColor,
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '$start - $end',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ],

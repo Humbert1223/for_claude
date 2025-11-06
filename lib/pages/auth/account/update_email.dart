@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 
 class UpdateEmailPage extends StatefulWidget {
@@ -13,7 +12,6 @@ class UpdateEmailPage extends StatefulWidget {
 class UpdateEmailPageState extends State<UpdateEmailPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
-  final authController = Get.find<AuthController>();
   bool _isLoading = false;
   bool _isEdit = false;
   bool _isFetching = true;
@@ -23,7 +21,7 @@ class UpdateEmailPageState extends State<UpdateEmailPage> {
   @override
   void initState() {
     super.initState();
-    authController.fromServer().then((currentUser) {
+    authProvider.fromServer().then((currentUser) {
       setState(() {
         user = currentUser;
         _isFetching = false;
@@ -42,7 +40,7 @@ class UpdateEmailPageState extends State<UpdateEmailPage> {
       );
 
       if (response != null) {
-        await authController.refreshUser();
+        await authProvider.refreshUser();
         setState(() {
           user = response;
           _isEdit = false;

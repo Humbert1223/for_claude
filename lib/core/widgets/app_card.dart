@@ -131,7 +131,7 @@ class AppCardWithHeader extends StatelessWidget {
   final EdgeInsets? margin;
 
   const AppCardWithHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     this.icon,
@@ -141,7 +141,7 @@ class AppCardWithHeader extends StatelessWidget {
     this.onTap,
     this.backgroundColor,
     this.margin,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

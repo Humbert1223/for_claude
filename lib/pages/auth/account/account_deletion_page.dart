@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 class DeleteAccountPage extends StatefulWidget {
@@ -12,7 +11,6 @@ class DeleteAccountPage extends StatefulWidget {
 
 class DeleteAccountPageState extends State<DeleteAccountPage> {
   final TextEditingController _passwordController = TextEditingController();
-  final authController = Get.find<AuthController>();
   bool _isLoading = false;
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
@@ -34,7 +32,7 @@ class DeleteAccountPageState extends State<DeleteAccountPage> {
       );
 
       if (response != null) {
-        authController.logout().then((value) {
+        authProvider.logout().then((value) {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         });
 

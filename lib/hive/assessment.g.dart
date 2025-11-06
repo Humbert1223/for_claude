@@ -21,7 +21,7 @@ class AssessmentAdapter extends TypeAdapter<Assessment> {
       ..remoteId = fields[1] as String
       ..schoolId = fields[2] as String
       ..classeIds = (fields[3] as List).cast<String>()
-      ..closed = fields[4] as bool;
+      ..closed = fields[4] as bool?;
   }
 
   @override

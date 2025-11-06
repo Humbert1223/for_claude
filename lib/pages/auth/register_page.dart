@@ -69,7 +69,7 @@ const countryIso = {
     {"label": "Corée du Nord", "value": "KP"},
     {"label": "Corée du Sud", "value": "KR"},
     {"label": "Costa Rica", "value": "CR"},
-    {"label": "Côte d’Ivoire", "value": "CI"},
+    {"label": "Côte d'Ivoire", "value": "CI"},
     {"label": "Croatie", "value": "HR"},
     {"label": "Cuba", "value": "CU"},
     {"label": "Danemark", "value": "DK"},
@@ -240,128 +240,298 @@ class RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 70),
-            Container(
-              width: 80,
-              height: 80,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/logo_3.png'),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Inscription', style: TextStyle(fontSize: 40)),
-            const SizedBox(height: 10),
-            const Text(
-              'Renseigner les informations de votre compte',
-              style: TextStyle(fontSize: 16),
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+              colorScheme.surface,
+              colorScheme.surface.withValues(alpha:0.95),
+            ]
+                : [
+              colorScheme.primary.withValues(alpha:0.05),
+              colorScheme.surface,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 40),
 
-            const SizedBox(height: 25),
-
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: RadioGroup(
-                    groupValue: gender,
-                    onChanged: (value) {
-                      setState(() {
-                        gender = value;
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 2,
-                          child: ListTile(
-                            leading: Radio(value: 'male'),
-                            title: const Text('Masculin'),
+                  // Logo et titre avec animation
+                  Hero(
+                    tag: 'logo',
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha:0.3),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primary.withValues(alpha:0.7),
+                            ],
                           ),
                         ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width / 2,
-                          child: ListTile(
-                            leading: Radio(value: 'female'),
-                            title: const Text('Féminin'),
-                          ),
+                        padding: const EdgeInsets.all(18),
+                        child: Image.asset(
+                          'assets/images/logo_3.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  Text(
+                    'Créer un compte',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'Rejoignez-nous dès aujourd\'hui',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withValues(alpha:0.6),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Section Genre avec design moderne
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? colorScheme.surfaceContainerHighest.withValues(alpha:0.3)
+                          : colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha:0.2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha:isDark ? 0.2 : 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
+                    padding: const EdgeInsets.all(4),
+                    child: RadioGroup(
+                      groupValue: gender,
+                      onChanged: (value) {
+                        setState(() {
+                          gender = value;
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => gender = 'male'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: gender == 'male'
+                                      ? colorScheme.primary
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Radio(
+                                      value: 'male',
+                                      activeColor: Colors.white,
+                                    ),
+                                    Text(
+                                      'Masculin',
+                                      style: TextStyle(
+                                        color: gender == 'male'
+                                            ? Colors.white
+                                            : colorScheme.onSurface,
+                                        fontWeight: gender == 'male'
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => gender = 'female'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: gender == 'female'
+                                      ? colorScheme.primary
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Radio(
+                                      value: 'female',
+                                      activeColor: Colors.white,
+                                    ),
+                                    Text(
+                                      'Féminin',
+                                      style: TextStyle(
+                                        color: gender == 'female'
+                                            ? Colors.white
+                                            : colorScheme.onSurface,
+                                        fontWeight: gender == 'female'
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                MyTextField(
-                  controller: nameController,
-                  hintText: "Nom",
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: firstNameController,
-                  hintText: "Prénom(s)",
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: TextFormField(
+
+                  const SizedBox(height: 24),
+
+                  // Section Informations personnelles
+                  _buildSectionTitle('Informations personnelles', context),
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: nameController,
+                    hintText: "Nom",
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: firstNameController,
+                    hintText: "Prénom(s)",
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
                     controller: birthdateController,
-                    decoration: const InputDecoration(
+                    readOnly: true,
+                    decoration: InputDecoration(
                       hintText: "Date de naissance",
-                      prefixIcon: Icon(Icons.person_outline),
+                      prefixIcon: const Icon(Icons.calendar_today_outlined),
+                      suffixIcon: const Icon(Icons.arrow_drop_down),
+                      filled: true,
+                      fillColor: isDark
+                          ? colorScheme.surfaceContainerHighest.withValues(alpha:0.3)
+                          : colorScheme.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: colorScheme.outline.withValues(alpha:0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
                     ),
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
                         context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now().add(
-                          const Duration(days: -36500),
-                        ),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 3650),
-                        ),
+                        initialDate: DateTime.now().subtract(const Duration(days: 6570)),
+                        firstDate: DateTime.now().subtract(const Duration(days: 36500)),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: colorScheme,
+                            ),
+                            child: child!,
+                          );
+                        },
                       );
 
                       if (pickedDate != null) {
                         setState(() {
-                          birthdateController.text = DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(pickedDate);
+                          birthdateController.text = DateFormat('yyyy-MM-dd').format(pickedDate);
                         });
                       }
                     },
-                    obscureText: false,
                   ),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: birthCityController,
-                  hintText: "Lieu de naissance",
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.location_city),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: emailController,
-                  hintText: 'Email',
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.email_outlined),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: ModelFormInputSelect(
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: birthCityController,
+                    hintText: "Lieu de naissance",
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.location_city_outlined),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Section Contact
+                  _buildSectionTitle('Coordonnées', context),
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                  ),
+                  const SizedBox(height: 16),
+
+                  ModelFormInputSelect(
                     onChange: (value) {
                       setState(() {
                         countryController.text = value;
@@ -369,148 +539,233 @@ class RegisterPageState extends State<RegisterPage> {
                     },
                     item: countryIso,
                   ),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: phoneController,
-                  hintText: 'Téléphone',
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.phone_android_outlined),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: addressController,
-                  hintText: 'Adresse',
-                  obscureText: false,
-                  prefixIcon: const Icon(Icons.pin_drop_outlined),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: passwordController,
-                  hintText: 'Mot de passe',
-                  obscureText: !passIsVisible,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: InkWell(
-                    child: passIsVisible
-                        ? const Icon(Icons.visibility_off_outlined)
-                        : const Icon(Icons.visibility_outlined),
-                    onTap: () {
-                      setState(() {
-                        passIsVisible = !passIsVisible;
-                      });
-                    },
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: phoneController,
+                    hintText: 'Téléphone',
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.phone_android_outlined),
                   ),
-                ),
-                const SizedBox(height: 10),
-                MyTextField(
-                  controller: repeatPasswordController,
-                  hintText: 'Retaper le mot de passe',
-                  obscureText: !passIsVisible,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: InkWell(
-                    child: passIsVisible
-                        ? const Icon(Icons.visibility_off_outlined)
-                        : const Icon(Icons.visibility_outlined),
-                    onTap: () {
-                      setState(() {
-                        passIsVisible = !passIsVisible;
-                      });
-                    },
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: addressController,
+                    hintText: 'Adresse',
+                    obscureText: false,
+                    prefixIcon: const Icon(Icons.pin_drop_outlined),
                   ),
-                ),
-                const SizedBox(height: 25),
-                MyButton(
-                  onTap: () async {
-                    showDialog(
-                      barrierDismissible: false,
-                      barrierColor: Colors.black12,
-                      context: context,
-                      builder: (context) {
-                        return const SimpleDialog(
-                          children: [
-                            LoadingIndicator(),
-                            Center(child: Text('Enregistrement en cours ...')),
-                          ],
-                        );
+
+                  const SizedBox(height: 24),
+
+                  // Section Sécurité
+                  _buildSectionTitle('Sécurité', context),
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: passwordController,
+                    hintText: 'Mot de passe',
+                    obscureText: !passIsVisible,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        passIsVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          passIsVisible = !passIsVisible;
+                        });
                       },
-                    );
-                    try {
-                      Map<String, dynamic>? response = await register();
-                      if(context.mounted){
-                        Navigator.of(context).pop();
-                      }
-                      if (response != null) {
-                        if (context.mounted) {
-                          Fluttertoast.showToast(
-                            msg: "Votre inscription a été prise en compte !",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            textColor: Colors.white,
-                            fontSize: 16.0,
-                          );
-                          Navigator.of(
-                            context,
-                          ).pushNamedAndRemoveUntil('/login', (route) => false);
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  MyTextField(
+                    controller: repeatPasswordController,
+                    hintText: 'Confirmer le mot de passe',
+                    obscureText: !passIsVisible,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        passIsVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          passIsVisible = !passIsVisible;
+                        });
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Bouton S'inscrire avec effet moderne
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha:0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: MyButton(
+                      onTap: () async {
+                        showDialog(
+                          barrierDismissible: false,
+                          barrierColor: Colors.black38,
+                          context: context,
+                          builder: (context) {
+                            return Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const LoadingIndicator(),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Création de votre compte...',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+
+                        try {
+                          Map<String, dynamic>? response = await register();
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
+                          if (response != null) {
+                            if (context.mounted) {
+                              Fluttertoast.showToast(
+                                msg: "Compte créé avec succès !",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: colorScheme.primary,
+                                textColor: Colors.white,
+                                fontSize: 16.0,
+                              );
+                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/login',
+                                    (route) => false,
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                          }
                         }
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  },
-                  heightBtn: 50,
-                  buttonText: "S'inscrire",
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("J'ai déjà un compte"),
-                const SizedBox(width: 4),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  },
-                  child: Text(
-                    "Se connecter",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                      },
+                      heightBtn: 56,
+                      buttonText: "Créer mon compte",
                     ),
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
-            // Termes et conditions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Termes et'),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    "Conditions d'utilisation",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                  // Lien de connexion
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Déjà inscrit ?",
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withValues(alpha:0.7),
+                          fontSize: 15,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushReplacementNamed('/login');
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: Text(
+                          "Se connecter",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Termes et conditions
+                  Center(
+                    child: TextButton(
+                      onPressed: () {
+                        // Navigation vers les conditions
+                      },
+                      child: Text(
+                        "Conditions d'utilisation",
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withValues(alpha:0.6),
+                          fontSize: 13,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-            const SizedBox(height: 40),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  // Widget pour les titres de section
+  Widget _buildSectionTitle(String title, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
       ),
     );
   }

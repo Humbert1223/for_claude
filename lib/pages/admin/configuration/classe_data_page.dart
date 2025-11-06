@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novacole/components/data_models/default_data_grid.dart';
 import 'package:novacole/models/user_model.dart';
+import 'package:novacole/pages/classe_page.dart';
 
 class ClassesDataPage extends StatefulWidget {
   const ClassesDataPage({super.key});
@@ -36,37 +37,7 @@ class ClassesDataPageState extends State<ClassesDataPage> {
     return user != null
         ? DefaultDataGrid(
             itemBuilder: (classe) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      classe['name'],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Niveau: ${classe['level']?['name']}"),
-                            Text("Série: ${(classe['serie']?['name'])}")
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Capacité: ${classe['capacity'] ?? '-' }"),
-                            Text("Effectif: ${(classe['effectif'])}")
-                          ],
-                        ),
-                        Text("Titulaire: ${(classe['titulaire']?['full_name'])}")
-                      ],
-                    ),
-                  ],
-                );
+              return ClasseInfoWidget(classe: classe);
             },
             dataModel: 'classe',
             paginate: PaginationValue.paginated,

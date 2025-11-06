@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 import 'package:novacole/pages/quiz/models/quiz_user_model.dart';
 import 'package:novacole/pages/quiz/services/quiz_user_service.dart';
 import 'package:novacole/pages/quiz/achievement_system.dart';
@@ -157,16 +158,10 @@ class AchievementsPageState extends State<AchievementsPage>
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      floatingActionButton: FloatingActionButton(
-        heroTag: "backBtn",
+      floatingActionButton: ModernFloatingButton(
         onPressed: () => Navigator.pop(context),
-        child: const RotatedBox(
-          quarterTurns: 2,
-          child: Icon(
-            FontAwesomeIcons.shareFromSquare,
-            color: Colors.red,
-          ),
-        ),
+        icon: FontAwesomeIcons.shareFromSquare,
+        color: Colors.red,
       ),
     );
   }

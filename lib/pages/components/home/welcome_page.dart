@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:novacole/models/user_model.dart';
+import 'package:novacole/pages/auth/account/academic_switch_page.dart';
 import 'package:novacole/pages/components/home/admin_welcome.dart';
-import 'package:novacole/pages/auth/user_preferences_page.dart';
 import 'package:novacole/pages/components/home/home_search_widget.dart';
 import 'package:novacole/pages/components/home/home_slider.dart';
 import 'package:novacole/pages/components/home/teacher_welcome_page.dart';

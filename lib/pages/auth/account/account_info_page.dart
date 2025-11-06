@@ -1,10 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/json_schema.dart';
 import 'package:novacole/components/loading_indicator.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/form.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
@@ -20,7 +19,6 @@ class UserAccountInfoState extends State<UserAccountInfo>
     with SingleTickerProviderStateMixin {
   bool isFetching = true;
   late Map<String, dynamic> form;
-  final authController = Get.find<AuthController>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -37,12 +35,11 @@ class UserAccountInfoState extends State<UserAccountInfo>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-
     _loadUserData();
   }
 
   Future<void> _loadUserData() async {
-    await authController.refreshUser();
+    //await authProvider.refreshUser();
 
     final formData = await CoreForm().get(entity: 'user');
     if (formData == null) return;
@@ -60,13 +57,13 @@ class UserAccountInfoState extends State<UserAccountInfo>
       passConf['placeholder'] = 'Retaper le mot de passe';
     }
 
-    var userMap = authController.currentUser.value?.toMap();
+    var userMap = authProvider.currentUser.toMap();
     List inputs = List.from(form['inputs']).where((input) {
       return !['password', 'phone', 'email'].contains(input['field']);
     }).toList();
 
     inputs = inputs.map((e) {
-      e['value'] = userMap?[e['field']] ?? '';
+      e['value'] = userMap[e['field']] ?? '';
       return e;
     }).toList();
 
@@ -194,7 +191,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
   }
 
   Widget _buildProfileCard(ThemeData theme, bool isDark) {
-    final user = authController.currentUser.value;
+    final user = authProvider.currentUser;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -238,7 +235,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
             ),
             child: Center(
               child: Text(
-                user?.initials ?? '?',
+                user.initials,
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -249,7 +246,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
           ),
           const SizedBox(height: 16),
           Text(
-            user?.name ?? 'Utilisateur',
+            user.name ?? 'Utilisateur',
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -258,7 +255,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
             ),
             textAlign: TextAlign.center,
           ),
-          if (user?.email != null) ...[
+          if (user.email != null) ...[
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -267,7 +264,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                user!.email!,
+                user.email!,
                 style: const TextStyle(
                   fontSize: 13,
                   color: Colors.white,
@@ -283,7 +280,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
   }
 
   Widget _buildInfoSection(ThemeData theme, bool isDark) {
-    final user = authController.currentUser.value;
+    final user = authProvider.currentUser;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +320,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
                 isDark,
                 icon: Icons.wc_rounded,
                 label: 'Sexe',
-                value: user?.gender ?? '-',
+                value: user.gender ?? '-',
                 isFirst: true,
                 translate: true,
               ),
@@ -333,7 +330,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
                 isDark,
                 icon: Icons.person_outline_rounded,
                 label: 'Nom complet',
-                value: user?.name ?? '-',
+                value: user.name ?? '-',
               ),
               _buildDivider(theme, isDark),
               _buildInfoTile(
@@ -341,7 +338,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
                 isDark,
                 icon: Icons.phone_rounded,
                 label: 'Téléphone',
-                value: user?.phone ?? '-',
+                value: user.phone ?? '-',
               ),
               _buildDivider(theme, isDark),
               _buildInfoTile(
@@ -349,7 +346,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
                 isDark,
                 icon: Icons.email_rounded,
                 label: 'Email',
-                value: user?.email ?? '-',
+                value: user.email ?? '-',
                 isLast: true,
               ),
             ],
@@ -628,7 +625,7 @@ class UserAccountInfoState extends State<UserAccountInfo>
         }
 
         var response = await MasterCrudModel.patch(
-          '/auth/users/${authController.currentUser.value?.id}',
+          '/auth/users/${authProvider.currentUser.id}',
           data,
         );
 
@@ -637,8 +634,8 @@ class UserAccountInfoState extends State<UserAccountInfo>
 
         if (response != null) {
           var newUser = Map<String, dynamic>.from(response);
-          newUser['token'] = authController.currentUser.value?.token;
-          await authController.setCurrentUser(UserModel.fromMap(newUser));
+          newUser['token'] = authProvider.currentUser.token;
+          await authProvider.setCurrentUser(UserModel.fromMap(newUser));
 
           // Fermer le formulaire
           if (mounted) Navigator.pop(context);

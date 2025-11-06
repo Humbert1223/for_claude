@@ -145,7 +145,7 @@ class _ModelFormInputTextState extends State<ModelFormInputText> {
               ? Padding(
             padding: const EdgeInsets.only(right: 12, top: 14),
             child: Text(
-              'F CFA',
+              'F',
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context).primaryColor,

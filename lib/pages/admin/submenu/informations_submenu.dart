@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/sub_menu_item.dart';
 import 'package:novacole/pages/admin/informations/announce_data_page.dart';
 import 'package:novacole/pages/admin/informations/event_data_page.dart';
@@ -28,12 +29,7 @@ class InformationSubmenuPageState extends State<InformationSubmenuPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
         title: const Text(
           'Informations',
           style: TextStyle(

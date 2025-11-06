@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:novacole/pages/auth/profile_page.dart';
@@ -38,7 +37,6 @@ class _HomeScreenState extends State<HomeScreen>
   int _page = 0;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  final authController = Get.find<AuthController>();
 
   @override
   void initState() {
@@ -50,7 +48,9 @@ class _HomeScreenState extends State<HomeScreen>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _initializeApp();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _initializeApp();
+    });
   }
 
   @override
@@ -61,7 +61,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _initializeApp() async {
     _checkLastNotification();
-    Get.find<AuthController>().refreshUser();
+    authProvider.refreshUser();
+    authProvider.getCurrentFcmToken();
   }
 
   Future<void> _checkLastNotification() async {
@@ -70,9 +71,10 @@ class _HomeScreenState extends State<HomeScreen>
       final data = pref.getString(LocalStorageKeys.lastNotification);
 
       if (data != null && data.isNotEmpty) {
-        final notification = jsonDecode(data) as Map<String, dynamic>;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.toNamed('/notification', arguments: notification);
+          final notification = jsonDecode(data) as Map<String, dynamic>;
+          //todo: Ajouter les dans le localStorage
+          Navigator.of(context).pushNamed('/notification');
         });
         await pref.remove(LocalStorageKeys.lastNotification);
       }
@@ -83,53 +85,49 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeModel>(
-      builder: (context, themeModel, child) {
-        final isDark = themeModel.isDark;
-
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-            systemNavigationBarColor: isDark ? Colors.grey[900] : Colors.white,
-            systemNavigationBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
-          ),
-          child: Scaffold(
-            extendBody: true,
-            backgroundColor: _getBackgroundColor(context, isDark),
-            appBar: _buildAppBar(context, isDark),
-            body: Stack(
-              children: [
-                _buildBackgroundGradient(context, isDark),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  switchInCurve: Curves.easeInOutCubic,
-                  switchOutCurve: Curves.easeInOutCubic,
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.03, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: Container(
-                    key: ValueKey<int>(_page),
-                    padding: const EdgeInsets.only(bottom: 100),
-                    child: _tabs[_page],
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDark = themeProvider.isDark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: isDark ? Colors.grey[900] : Colors.white,
+        systemNavigationBarIconBrightness:
+        isDark ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: _getBackgroundColor(context, isDark),
+        appBar: _buildAppBar(context, isDark),
+        body: Stack(
+          children: [
+            _buildBackgroundGradient(context, isDark),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              switchInCurve: Curves.easeInOutCubic,
+              switchOutCurve: Curves.easeInOutCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.03, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
                   ),
-                ),
-              ],
+                );
+              },
+              child: Container(
+                key: ValueKey<int>(_page),
+                padding: const EdgeInsets.only(bottom: 100),
+                child: _tabs[_page],
+              ),
             ),
-            bottomNavigationBar: _buildBottomNavigationBar(context, isDark),
-          ),
-        );
-      },
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNavigationBar(context, isDark),
+      ),
     );
   }
 
@@ -230,9 +228,9 @@ class _HomeScreenState extends State<HomeScreen>
                     height: 1.2,
                   ),
                 ),
-                if (_page == 0 && authController.currentUser.value?.name != null)
+                if (_page == 0 && authProvider.currentUser.name != null)
                   Text(
-                    'Bienvenue, ${authController.currentUser.value!.name!.split(' ').first} 👋',
+                    'Bienvenue, ${authProvider.currentUser.name!.split(' ').first} 👋',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -501,9 +499,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildProfileNavItem(bool isDark) {
     final isSelected = _page == 3;
-    final imageProvider = authController.currentUser.value?.avatar == null
+    final imageProvider = authProvider.currentUser.avatar == null
         ? const AssetImage('assets/images/person.jpeg') as ImageProvider
-        : CachedNetworkImageProvider(authController.currentUser.value!.avatar!);
+        : CachedNetworkImageProvider(authProvider.currentUser.avatar!);
 
     return Expanded(
       child: GestureDetector(

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:novacole/components/data_models/default_data_grid.dart';
-import 'package:novacole/components/model_photo_widget.dart';
-import 'package:novacole/controllers/auth_controller.dart';
 import 'package:novacole/models/user_model.dart';
+import 'package:novacole/pages/admin/actors/actor_info_widget.dart';
 import 'package:novacole/pages/student_details.dart';
 import 'package:novacole/utils/constants.dart';
 import 'package:novacole/utils/permission_utils.dart';
@@ -71,56 +69,6 @@ class StudentListPageState extends State<StudentListPage> {
           }
         },
       ),
-    );
-  }
-}
-
-class StudentInfoWidget extends StatelessWidget {
-  final Map<String, dynamic> student;
-  const StudentInfoWidget({super.key, required this.student});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        ModelPhotoWidget(
-          model: student,
-          width: 60,
-          height: 60,
-          editIconSize: 9,
-        ),
-        const SizedBox(width: 10),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "${student['full_name']}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              'Matricule : ${student['matricule']}',
-              style: const TextStyle(fontSize: 12),
-            ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 200,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Âge : ${student['age']}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  Text(
-                    'Niveau : ${student['level']?['name'] ?? '-'}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/components/form_inputs/input_select.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
-import 'package:novacole/pages/auth/school_space_switch_page.dart';
+import 'package:novacole/pages/auth/account/academic_switch_page.dart';
+import 'package:provider/provider.dart';
 
 class UserPreferencesPage extends StatefulWidget {
   const UserPreferencesPage({super.key});
@@ -26,8 +25,6 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
     {'label': "Email", 'value': "mail", 'icon': Icons.email_rounded},
   ];
 
-  List<String> selected = [];
-  final authController = Get.find<AuthController>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -44,9 +41,6 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-
-    selected = authController.currentUser.value?.preferredChannels ?? [];
-
     _animationController.forward();
   }
 
@@ -64,23 +58,23 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
     return Scaffold(
       backgroundColor: isDark ? theme.colorScheme.surface : Colors.grey.shade50,
       appBar: _buildModernAppBar(theme, isDark),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              const UserAcademicSelectForm(),
-              const SizedBox(height: 12),
-              _buildNotificationChannelsCard(theme, isDark),
-              const SizedBox(height: 12),
-              _buildSchoolSpaceCard(theme, isDark),
-              const SizedBox(height: 50),
-            ],
+      body: Consumer<AuthProvider>(builder: (context, auth, child){
+        return FadeTransition(
+          opacity: _fadeAnimation,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                const UserAcademicSelectForm(),
+                const SizedBox(height: 12),
+                _buildNotificationChannelsCard(auth, theme, isDark),
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
@@ -137,7 +131,8 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
     );
   }
 
-  Widget _buildNotificationChannelsCard(ThemeData theme, bool isDark) {
+  Widget _buildNotificationChannelsCard(AuthProvider authProvider, ThemeData theme, bool isDark) {
+    final selected = (authProvider.currentUser.preferredChannels ?? []);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -223,7 +218,7 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
               const SizedBox(height: 20),
               ...channels.map((channel) {
                 final isSelected = selected.contains(channel['value']);
-                return _buildChannelItem(theme, isDark, channel, isSelected);
+                return _buildChannelItem(authProvider, theme, isDark, channel, isSelected);
               }),
             ],
           ),
@@ -233,11 +228,13 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
   }
 
   Widget _buildChannelItem(
+    AuthProvider authProvider,
     ThemeData theme,
     bool isDark,
     Map channel,
     bool isSelected,
   ) {
+    final selected = (authProvider.currentUser.preferredChannels ?? []);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -274,17 +271,14 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
             });
 
             var response = await MasterCrudModel.patch(
-              '/auth/users/${authController.currentUser.value?.id}',
+              '/auth/users/${authProvider.currentUser.id}',
               {'preferred_channels': selected},
             );
 
             if (response != null) {
               var newUser = Map<String, dynamic>.from(response);
-              newUser['token'] = authController.currentUser.value?.token;
-              authController.setCurrentUser(UserModel.fromMap(newUser));
-              setState(() {
-                selected = List<String>.from(response['preferred_channels']);
-              });
+              newUser['token'] = authProvider.currentUser.token;
+              authProvider.setCurrentUser(UserModel.fromMap(newUser));
             }
           },
           child: Padding(
@@ -309,13 +303,21 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Text(
-                    channel['label'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: theme.colorScheme.onSurface,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        channel['label'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      _buildChannelCautionMessage(channel),
+                    ],
                   ),
                 ),
                 AnimatedContainer(
@@ -369,319 +371,35 @@ class UserPreferencesPageState extends State<UserPreferencesPage>
     );
   }
 
-  Widget _buildSchoolSpaceCard(ThemeData theme, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? theme.colorScheme.surface : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.05),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
+  _buildChannelCautionMessage(channel) {
+    if (channel['value'] == 'sms' && authProvider.currentUser.phoneVerifiedAt == null) {
+      return Text(
+        "Vous n'avez validé votre numéro de téléphone. Vous ne pourrez pas recevoir de message.",
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.red,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.orange.shade600,
-                          Colors.orange.shade400,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.orange.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.business_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Espace & Établissement',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Choix de votre espace',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const SchoolSpaceSwitch(),
-            ],
-          ),
+      );
+    }
+    if (channel['value'] == 'sms' && (authProvider.currentUser.smsWallet ?? 0) <= 0) {
+      return Text(
+        "Vous n'avez plus de crédit SMS. Vous ne pourrez pas recevoir de message.",
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.red,
         ),
-      ),
-    );
-  }
-}
-
-class UserAcademicSelectForm extends StatefulWidget {
-  const UserAcademicSelectForm({super.key});
-
-  @override
-  UserAcademicSelectFormState createState() => UserAcademicSelectFormState();
-}
-
-class UserAcademicSelectFormState extends State<UserAcademicSelectForm> {
-  final authController = Get.find<AuthController>();
-  String? academic;
-  String? school;
-
-  @override
-  void initState() {
-    super.initState();
-    academic = authController.currentUser.value?.academic;
-    school = authController.currentUser.value?.school;
+      );
+    }
+    if (channel['value'] == 'mail' && authProvider.currentUser.emailVerifiedAt == null) {
+      return Text(
+        "Vous n'avez validé votre email. Vous ne pourrez pas recevoir de message.",
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.red,
+        ),
+      );
+    }
+    return SizedBox.shrink();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? theme.colorScheme.surface : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.05),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade600, Colors.blue.shade400],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blue.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.calendar_today_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Année scolaire',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "L'année que vous souhaitez gérer",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? theme.colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.3,
-                        )
-                      : theme.colorScheme.surfaceContainerHighest.withValues(
-                          alpha: 0.5,
-                        ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: ModelFormInputSelect(
-                  item: {
-                    'field': 'academic_id',
-                    'entity': 'academic',
-                    'type': 'selectresource',
-                    'name': 'Année scolaire',
-                    'placeholder': 'Sélectionner une année',
-                    'value': academic,
-                    'filters': [
-                      {
-                        'field': 'school_id',
-                        'operator': '=',
-                        'value': school,
-                      },
-                      {
-                        'field': 'started_at',
-                        'operator': '!=',
-                        'value': null,
-                      },
-                    ],
-                  },
-                  onChange: (value) async {
-                    showDialog(
-                      barrierDismissible: false,
-                      context: context,
-                      builder: (context) {
-                        return Dialog(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary
-                                        .withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: CircularProgressIndicator(
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'Changement en cours...',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Veuillez patienter',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-
-                    try {
-                      final response = await MasterCrudModel.patch(
-                        '/auth/user/academic/update',
-                        {'academic_id': value},
-                      );
-                      if (response != null) {
-                        await authController.refreshUser();
-                        setState(() {
-                          academic = value;
-                        });
-                        Get.offNamed('/');
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Erreur de chargement: ${e.toString()}',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    } finally {
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

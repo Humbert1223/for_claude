@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:novacole/pages/auth/school_space_switch_page.dart';
 import 'package:novacole/pages/components/home/home_page_admin_menu.dart';
@@ -17,7 +16,6 @@ class HomePageMenu extends StatefulWidget {
 class HomePageMenuState extends State<HomePageMenu> {
   UserModel? user;
   List? users;
-  final authController = Get.find<AuthController>();
 
   @override
   void initState() {
@@ -30,7 +28,7 @@ class HomePageMenuState extends State<HomePageMenu> {
     if (mounted) {
       setState(() {
         user = value;
-        users = authController.savedAccounts.toList();
+        users = authProvider.savedAccounts.toList();
       });
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
+import 'package:novacole/core/extensions/list_extension.dart';
+import 'package:provider/provider.dart';
 
 
 class PermissionName{
@@ -51,19 +52,19 @@ class PermissionName{
 
 /// Classe utilitaire pour les permissions
 class PermissionUtils {
-  static AuthController get _authController => Get.find<AuthController>();
 
   /// Vérifier si l'utilisateur peut effectuer une action
   static bool canPerformAction(String action) {
-    return _authController.hasPermission(action);
+    return authProvider.hasPermission(action);
   }
 
   /// Exécuter une action si la permission est accordée
-  static void executeIfAllowed(String permission, VoidCallback action) {
-    if (_authController.hasPermission(permission)) {
+  static bool executeIfAllowed(String permission, VoidCallback action) {
+    if (authProvider.hasPermission(permission)) {
       action();
+      return true;
     } else {
-      _showNoPermissionDialog();
+      return false;
     }
   }
 
@@ -73,40 +74,16 @@ class PermissionUtils {
       VoidCallback onAllowed,
       VoidCallback onDenied,
       ) {
-    if (_authController.hasPermission(permission)) {
+    if (authProvider.hasPermission(permission)) {
       onAllowed();
     } else {
       onDenied();
     }
   }
 
-  /// Afficher un dialogue de permission refusée
-  static void _showNoPermissionDialog() {
-    Get.dialog(
-      AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Permission requise'),
-          ],
-        ),
-        content: Text(
-          'Vous n\'avez pas la permission d\'effectuer cette action.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Fermer'),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Obtenir une liste de permissions formatée
   static String getFormattedPermissions() {
-    final perms = _authController.permissions;
+    final perms = authProvider.permissions;
     if (perms.isEmpty) {
       return 'Aucune permission';
     }
@@ -115,7 +92,7 @@ class PermissionUtils {
 
   /// Vérifier si l'utilisateur est admin
   static bool isAdmin() {
-    return _authController.currentUser.value?.accountType == 'admin';
+    return authProvider.currentUser.accountType == 'admin';
   }
 
   /// Filtrer une liste d'actions selon les permissions
@@ -125,7 +102,7 @@ class PermissionUtils {
       ) {
     return items.where((item) {
       final permission = getPermission(item);
-      return _authController.hasPermission(permission);
+      return authProvider.hasPermission(permission);
     }).toList();
   }
 }
@@ -138,7 +115,7 @@ class PermissionRequired {
   const PermissionRequired(this.permission, {required this.onDenied});
 
   void execute(Function action) {
-    if (Get.find<AuthController>().hasPermission(permission)) {
+    if (authProvider.hasPermission(permission)) {
       action();
     } else {
       onDenied();
@@ -155,11 +132,10 @@ class PermissionMenuBuilder {
   }
 
   List<Widget> build(BuildContext context) {
-    final authController = Get.find<AuthController>();
 
     return items.where((item) {
       if (item.permission == null) return true;
-      return authController.hasPermission(item.permission!);
+      return authProvider.hasPermission(item.permission!);
     }).map((item) {
       return ListTile(
         leading: item.icon != null ? Icon(item.icon) : null,
@@ -192,7 +168,6 @@ class MenuItemConfig {
 
 /// Classe pour gérer les actions en masse avec permissions
 class BulkActionManager {
-  final AuthController _authController = Get.find<AuthController>();
 
   final List<BulkAction> _actions = [];
 
@@ -202,13 +177,13 @@ class BulkActionManager {
 
   List<BulkAction> getAvailableActions() {
     return _actions.where((action) {
-      return _authController.hasPermission(action.requiredPermission);
+      return authProvider.hasPermission(action.requiredPermission);
     }).toList();
   }
 
   void executeAction(String actionId, List<dynamic> selectedItems) {
     final action = _actions.firstWhereOrNull((a) => a.id == actionId);
-    if (action != null && _authController.hasPermission(action.requiredPermission)) {
+    if (action != null && authProvider.hasPermission(action.requiredPermission)) {
       action.execute(selectedItems);
     }
   }
@@ -243,18 +218,14 @@ class PermissionBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
-
-    return Obx(() {
-      final hasPermission = authController.hasPermission(permission);
-
+    return Consumer<AuthProvider>(builder: (context, auth, child){
       return Badge(
         label: Icon(
-          hasPermission ? Icons.check : Icons.lock,
+          auth.hasPermission(permission) ? Icons.check : Icons.lock,
           size: 12,
           color: Colors.white,
         ),
-        backgroundColor: hasPermission ? Colors.green : Colors.red,
+        backgroundColor: auth.hasPermission(permission) ? Colors.green : Colors.red,
         child: child,
       );
     });
@@ -264,8 +235,7 @@ class PermissionBadge extends StatelessWidget {
 /// Helper pour logger les tentatives d'accès
 class PermissionLogger {
   static void logAccess(String resource, bool granted) {
-    final authController = Get.find<AuthController>();
-    final userId = authController.userId;
+    final userId = authProvider.userId;
     final timestamp = DateTime.now().toIso8601String();
 
     print('[PERMISSION] $timestamp - User: $userId - Resource: $resource - Granted: $granted');
@@ -274,8 +244,7 @@ class PermissionLogger {
   }
 
   static void logAttempt(String action, String permission) {
-    final authController = Get.find<AuthController>();
-    final hasPermission = authController.hasPermission(permission);
+    final hasPermission = authProvider.hasPermission(permission);
 
     logAccess('$action (requires: $permission)', hasPermission);
 
@@ -380,15 +349,13 @@ class PermissionHierarchy {
 
 /// Widget pour afficher les permissions de l'utilisateur (debug)
 class PermissionDebugWidget extends StatelessWidget {
-  const PermissionDebugWidget({Key? key}) : super(key: key);
+  const PermissionDebugWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authController = Get.find<AuthController>();
 
-    return Obx(() {
-      final permissions = authController.permissions;
-
+    return Consumer<AuthProvider>(builder: (context, auth, child){
+       final permissions = authProvider.permissions;
       return Card(
         child: ExpansionTile(
           leading: Icon(Icons.security, color: Colors.blue),
@@ -409,7 +376,7 @@ class PermissionDebugWidget extends StatelessWidget {
                     style: TextStyle(fontSize: 14),
                   ),
                 );
-              }).toList(),
+              }),
           ],
         ),
       );
@@ -446,8 +413,7 @@ class _PermissionSelectorState extends State<PermissionSelector> {
     _selected = List.from(widget.selectedPermissions);
 
     if (widget.requiredPermissionToEdit != null) {
-      final authController = Get.find<AuthController>();
-      _canEdit = authController.hasPermission(widget.requiredPermissionToEdit!);
+      _canEdit = authProvider.hasPermission(widget.requiredPermissionToEdit!);
     }
   }
 
@@ -501,7 +467,7 @@ class _PermissionSelectorState extends State<PermissionSelector> {
                 });
               } : null,
             );
-          }).toList(),
+          }),
         ],
       ),
     );

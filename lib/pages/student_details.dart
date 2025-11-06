@@ -12,6 +12,7 @@ import 'package:novacole/pages/components/student_details/student_fees_list.dart
 import 'package:novacole/pages/components/student_details/student_leave_list.dart';
 import 'package:novacole/pages/components/student_details/student_planing_page.dart';
 import 'package:novacole/pages/components/student_details/student_tutor_list_page.dart';
+import 'package:novacole/utils/tools.dart';
 
 class StudentDetails extends StatefulWidget {
   final Map<String, dynamic> student;
@@ -421,35 +422,44 @@ class StudentDetailsState extends State<StudentDetails> with SingleTickerProvide
   }
 
   Widget _buildQuickStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.event_available_rounded,
-            label: 'Présent',
-            value: '95%',
-            color: Colors.green,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.grade_rounded,
-            label: 'Moyenne',
-            value: '14.5',
-            color: Colors.blue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.payments_rounded,
-            label: 'Frais',
-            value: 'OK',
-            color: Colors.orange,
-          ),
-        ),
-      ],
+    return FutureBuilder(
+      future: MasterCrudModel.post('/student/stats/quick-stats/${widget.student['id']}'),
+      builder: (context, snapshot){
+        if(snapshot.hasData && snapshot.data != null && snapshot.data!.isNotEmpty){
+          return Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.event_available_rounded,
+                  label: 'Absences',
+                  value: "${snapshot.data!['absences']}",
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.assignment_turned_in,
+                  label: 'Permissions',
+                  value: "${snapshot.data!['leaves']}",
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.payments_rounded,
+                  label: 'Frais',
+                  value: currency(snapshot.data!['fees']),
+                  color: Colors.orange,
+                ),
+              ),
+            ],
+          );
+        }else{
+          return SizedBox.shrink();
+        }
+      }
     );
   }
 

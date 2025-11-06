@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/data_models/default_data_form.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/models/master_crud_model.dart';
@@ -48,7 +49,9 @@ class UserTeacherProfileState extends State<UserTeacherProfile> {
     if (loading) {
       return Center(
         child: Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(
+            leading: AppBarBackButton(),
+          ),
           body: const LoadingIndicator(),
         ),
       );

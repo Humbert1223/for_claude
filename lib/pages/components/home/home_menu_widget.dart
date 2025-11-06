@@ -28,21 +28,17 @@ class HomeMenuWidgetState extends State<HomeMenuWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _elevationAnimation;
   bool _isPressed = false;
 
   @override
   void initState() {
     super.initState();
     _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOutCubic),
-    );
-    _elevationAnimation = Tween<double>(begin: 1.0, end: 0.5).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOutCubic),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.88).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeOut),
     );
   }
 
@@ -69,10 +65,6 @@ class HomeMenuWidgetState extends State<HomeMenuWidget>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final effectiveColor = widget.color ?? theme.colorScheme.primary;
-
     return GestureDetector(
       onTapDown: _handleTapDown,
       onTapUp: _handleTapUp,
@@ -83,228 +75,153 @@ class HomeMenuWidgetState extends State<HomeMenuWidget>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildModernIconContainer(context, effectiveColor, isDark),
-            const SizedBox(height: 10),
-            _buildModernTitle(context),
+            _buildAppIcon(context),
+            const SizedBox(height: 8),
+            _buildAppLabel(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildModernIconContainer(
-      BuildContext context,
-      Color effectiveColor,
-      bool isDark,
-      ) {
-    final size = MediaQuery.of(context).size.width * 0.18;
+  Widget _buildAppIcon(BuildContext context) {
+    final size = MediaQuery.of(context).size.width * 0.20;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _elevationAnimation,
-      builder: (context, child) {
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Container principal avec design moderne
-            Container(
-              height: size,
-              width: size,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: _isPressed
-                      ? [
-                    effectiveColor.withValues(alpha: 0.25),
-                    effectiveColor.withValues(alpha: 0.15),
-                  ]
-                      : [
-                    effectiveColor.withValues(alpha: 0.12),
-                    effectiveColor.withValues(alpha: 0.06),
-                  ],
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Icône principale style Android
+        Container(
+          height: size,
+          width: size,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(size * 0.22), // ~22% de rayon pour style Android
+            color: widget.color?.withValues(alpha: 0.1) ??
+                theme.colorScheme.surfaceContainerLow,
+            boxShadow: _isPressed
+                ? []
+                : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 1 : 0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(size * 0.22),
+            child: Stack(
+              children: [
+                // Image/Icône
+                Center(
+                  child: SizedBox(
+                    width: size * 0.95,
+                    height: size * 0.95,
+                    child: widget.image,
+                  ),
                 ),
+                // Overlay lors du press
+                if (_isPressed)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(size * 0.22),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+
+        // Badge de notification (style Android)
+        if (widget.badgeCount != null && widget.badgeCount! > 0)
+          Positioned(
+            top: -4,
+            right: -4,
+            child: Container(
+              constraints: const BoxConstraints(
+                minWidth: 18,
+                minHeight: 18,
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.red.shade600,
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: _isPressed
-                      ? effectiveColor.withValues(alpha: 0.4)
-                      : effectiveColor.withValues(alpha: 0.25),
-                  width: 1.5,
+                  color: theme.scaffoldBackgroundColor,
+                  width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: effectiveColor.withValues(
-                      alpha: _isPressed ? 0.25 : 0.15 * _elevationAnimation.value,
-                    ),
-                    blurRadius: _isPressed ? 8 : 16,
-                    offset: Offset(0, _isPressed ? 2 : 6),
-                    spreadRadius: 0,
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
                   ),
-                  if (!_isPressed)
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                      spreadRadius: -2,
-                    ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(19),
-                child: Stack(
-                  children: [
-                    // Effet de brillance subtil en haut à droite
-                    Positioned(
-                      top: -size * 0.15,
-                      right: -size * 0.15,
-                      child: Container(
-                        width: size * 0.6,
-                        height: size * 0.6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              Colors.white.withValues(alpha: isDark ? 0.08 : 0.25),
-                              Colors.white.withValues(alpha: 0.0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Icône/Image avec padding
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(size * 0.2),
-                        child: widget.image,
-                      ),
-                    ),
-                    // Overlay subtil lors du press
-                    if (_isPressed)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: effectiveColor.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(19),
-                        ),
-                      ),
-                  ],
+              child: Text(
+                widget.badgeCount! > 99 ? '99+' : '${widget.badgeCount}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
+          ),
 
-            // Badge "NEW" moderne
-            if (widget.isNew)
-              Positioned(
-                top: -4,
-                right: -4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.orange.shade400,
-                        Colors.deepOrange.shade600,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.orange.withValues(alpha: 0.4),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'NEW',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                      height: 1,
-                    ),
-                  ),
+        // Badge "NEW" (style Android discret)
+        if (widget.isNew)
+          Positioned(
+            top: -2,
+            right: -2,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: Colors.green.shade500,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.scaffoldBackgroundColor,
+                  width: 2,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
-
-            // Badge de notification moderne
-            if (widget.badgeCount != null && widget.badgeCount! > 0)
-              Positioned(
-                top: -6,
-                right: -6,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.red.shade500,
-                        Colors.red.shade700,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withValues(alpha: 0.5),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 20,
-                    minHeight: 20,
-                  ),
-                  child: Center(
-                    child: Text(
-                      widget.badgeCount! > 99 ? '99+' : '${widget.badgeCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildModernTitle(BuildContext context) {
+  Widget _buildAppLabel(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.22,
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.2,
       child: Text(
-        widget.title.toUpperCase(),
+        widget.title.toString().toUpperCase(),
         style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-          letterSpacing: 0.3,
-          color: theme.colorScheme.onSurface,
-          height: 1.2,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.9)
+              : Colors.black.withValues(alpha: 0.87),
+          height: 1.3,
+          letterSpacing: 0.1
         ),
         textAlign: TextAlign.center,
         maxLines: 2,

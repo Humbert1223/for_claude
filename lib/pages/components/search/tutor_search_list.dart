@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/models/master_crud_model.dart';
+import 'package:novacole/pages/admin/actors/actor_info_widget.dart';
 import 'package:novacole/pages/admin/actors/tutor_details.dart';
 import 'package:novacole/pages/admin/actors/tutor_list_page.dart';
 

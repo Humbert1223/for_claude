@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/permission_widgets.dart';
 import 'package:novacole/components/sub_menu_item.dart';
 import 'package:novacole/pages/admin/auth/role_data_page.dart';
@@ -32,12 +33,7 @@ class AuthorisationSubmenuPageState extends State<AuthorisationSubmenuPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
         title: const Text(
           'Autorisations',
           style: TextStyle(

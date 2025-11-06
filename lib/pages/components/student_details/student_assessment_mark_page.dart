@@ -387,7 +387,7 @@ class StudentAssessmentMarkPageState extends State<StudentAssessmentMarkPage> {
             ),
           ),
           const SizedBox(height: 12),
-          ...marks.map((mark) => _buildMarkCard(context, mark)).toList(),
+          ...marks.map((mark) => _buildMarkCard(context, mark)),
         ],
       ),
     );

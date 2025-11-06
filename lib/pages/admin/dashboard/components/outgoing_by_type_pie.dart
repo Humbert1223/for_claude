@@ -132,45 +132,50 @@ class OutgoingByTypePieState extends State<OutgoingByTypePie>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha:0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.trending_down_rounded,
-                  color: Colors.red.shade700,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Dépenses par type",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha:0.15),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  if (data != null)
-                    Text(
-                      "${data!.length} catégories",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurface.withValues(alpha:0.6),
-                        fontWeight: FontWeight.w500,
+                  child: Icon(
+                    Icons.trending_down_rounded,
+                    color: Colors.red.shade700,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Dépenses par type",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: -0.5,
+                          overflow: TextOverflow.ellipsis
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ],
+                      if (data != null)
+                        Text(
+                          "${data!.length} catégories",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface.withValues(alpha:0.6),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           _buildModernSwitch(theme),
         ],

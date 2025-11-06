@@ -72,14 +72,13 @@ class EventTodayNotificationWidgetState
           icon: Icon(
             Icons.calendar_month_rounded,
             size: 26,
-            color: Theme.of(context).primaryColor,
           ),
           tooltip: 'Événements',
         ),
         if (!_loading && _events.isNotEmpty)
           Positioned(
-            right: 6,
-            top: 6,
+            right: -6,
+            top: -6,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(

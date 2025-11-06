@@ -1,11 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:novacole/components/loading_indicator.dart';
 import 'package:novacole/models/master_crud_model.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 
 class QuizDisciplineSelect extends StatefulWidget {
-
   const QuizDisciplineSelect({super.key});
 
   @override
@@ -24,8 +23,9 @@ class QuizDisciplineSelectState extends State<QuizDisciplineSelect> {
 
   Future<void> _fetchDisciplines() async {
     try {
-      final fetchedDisciplines =
-          await MasterCrudModel('discipline').search(paginate: '0');
+      final fetchedDisciplines = await MasterCrudModel(
+        'discipline',
+      ).search(paginate: '0');
       setState(() {
         disciplines = List<Map<String, dynamic>>.from(fetchedDisciplines);
         isLoading = false;
@@ -59,42 +59,10 @@ class QuizDisciplineSelectState extends State<QuizDisciplineSelect> {
                 itemCount: disciplines.length,
                 itemBuilder: (context, index) {
                   final discipline = disciplines[index];
-                  return InkWell(
-                    onTap: () {
-                        Navigator.of(context).pop(disciplines[index]);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
-                        image: DecorationImage(
-                          image: CachedNetworkImageProvider(
-                            discipline['image_url'],
-                          ),
-                        ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0x903C3C3C),
-                          // Use 'const' for better performance.
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "${discipline['name']}",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              // Use 'const' for better performance.
-                              fontSize: 25.0,
-                              color: Colors.white,
-                              // Use GridView.builder for potential performance improvement with large lists.
-
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                  return ModernSelectionCard(
+                    title: discipline['name'],
+                    imageUrl: discipline['image_url'],
+                    onTap: () => Navigator.of(context).pop(discipline),
                   );
                 },
               ),

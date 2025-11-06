@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/json_schema.dart';
 import 'package:novacole/pages/admin/reports/widgets/report_download_widget.dart';
 import 'package:novacole/pages/admin/reports/widgets/report_types.dart';
@@ -197,10 +198,7 @@ class PrimaryReportDownloadPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        leading: AppBarBackButton(),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(8),

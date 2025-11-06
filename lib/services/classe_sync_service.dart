@@ -103,8 +103,9 @@ class ClasseSyncService {
   }
 
   static bool _canUserSync(UserModel? user) {
-    if (user == null || user.school == null || user.academic == null)
+    if (user == null || user.school == null || user.academic == null) {
       return false;
+    }
     return ![
       UserAccountType.student,
       UserAccountType.tutor,

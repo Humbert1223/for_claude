@@ -101,30 +101,35 @@ class HomeTodayEventState extends State<HomeTodayEvent> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha:0.1),
-                        borderRadius: BorderRadius.circular(10),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha:0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.event_available_rounded,
+                          color: colorScheme.primary,
+                          size: 22,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.event_available_rounded,
-                        color: colorScheme.primary,
-                        size: 22,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Événements du jour',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Événements du jour',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 TextButton.icon(
                   onPressed: () {

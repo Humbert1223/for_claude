@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:novacole/core/extensions/list_extension.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
 
@@ -167,6 +167,8 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
   }
 
   Widget _buildLoadingWidget(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -176,7 +178,8 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
             'Chargement...',
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).primaryColor,
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(width: 12),
@@ -184,8 +187,8 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Theme.of(context).primaryColor,
+              strokeWidth: 2.5,
+              color: colorScheme.primary,
             ),
           ),
         ],
@@ -194,11 +197,14 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
   }
 
   Widget _buildDropdown(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return DropdownSearch<(String?, dynamic)>(
       key: ObjectKey(widget.item['field']),
       enabled: widget.item['disabled'] != true,
       selectedItem: _value,
-      clickProps: ClickProps(borderRadius: BorderRadius.circular(16)),
+      clickProps: ClickProps(borderRadius: BorderRadius.circular(12)),
       items: (filter, infinite) => _options.map((dynamic data) {
         return ((data['label'] ?? data).toString(), (data['value'] ?? data));
       }).toList(),
@@ -206,7 +212,7 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
       popupProps: PopupProps.modalBottomSheet(
         title: _buildDialogTitle(context),
         modalBottomSheetProps: ModalBottomSheetProps(
-          backgroundColor: Colors.white,
+          backgroundColor: isDark ? colorScheme.surface : Colors.white,
           barrierDismissible: false,
           clipBehavior: Clip.antiAlias,
           shape: const RoundedRectangleBorder(
@@ -218,14 +224,19 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
             ? TextFieldProps(
           decoration: InputDecoration(
             hintText: 'Rechercher...',
+            hintStyle: TextStyle(
+              color: colorScheme.onSurface.withValues(alpha:0.5),
+            ),
             prefixIcon: Icon(
               Icons.search_rounded,
-              color: Theme.of(context).primaryColor,
+              color: colorScheme.primary,
             ),
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: isDark
+                ? colorScheme.surfaceContainerHighest.withValues(alpha:0.3)
+                : colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
             contentPadding: const EdgeInsets.symmetric(
@@ -240,11 +251,19 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
-              const SizedBox(height: 12),
+              Icon(
+                Icons.inbox_outlined,
+                size: 56,
+                color: colorScheme.onSurface.withValues(alpha:0.3),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'Aucun élément',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha:0.6),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -256,36 +275,56 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
       dropdownBuilder: (ctx, selectedItem) => Text(
         selectedItem?.$1 ?? '',
         style: widget.decorationTextStyle ??
-            const TextStyle(overflow: TextOverflow.ellipsis, fontSize: 15),
+            TextStyle(
+              overflow: TextOverflow.ellipsis,
+              fontSize: 15,
+              color: colorScheme.onSurface,
+            ),
       ),
       decoratorProps: DropDownDecoratorProps(
         decoration: InputDecoration(
           label: Text(
             widget.item['name'],
             style: widget.decorationTextStyle ??
-                const TextStyle(overflow: TextOverflow.ellipsis, fontSize: 15),
+                TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  fontSize: 15,
+                  color: colorScheme.onSurfaceVariant,
+                ),
           ),
           prefixIcon: widget.showPrefix == true
               ? Icon(
             Icons.playlist_add_check_rounded,
-            color: Theme.of(context).primaryColor,
+            color: colorScheme.primary,
           )
               : null,
           filled: true,
-          fillColor: Colors.grey[50],
+          fillColor: isDark
+              ? colorScheme.surfaceContainerHighest.withValues(alpha:0.3)
+              : colorScheme.surfaceContainerHighest.withValues(alpha:0.5),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha:0.2),
+            ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha:0.2),
+            ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: Theme.of(context).primaryColor,
+              color: colorScheme.primary,
               width: 2,
+            ),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha:0.1),
             ),
           ),
         ),
@@ -296,8 +335,18 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
   }
 
   Widget _buildDialogTitle(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colorScheme.outline.withValues(alpha:0.1),
+            width: 1,
+          ),
+        ),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -305,16 +354,18 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: colorScheme.onSurface.withValues(alpha:0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 16),
           Text(
             widget.item['name'],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface,
+              letterSpacing: -0.3,
             ),
           ),
         ],
@@ -328,41 +379,62 @@ class _ModelFormInputSelectState extends State<ModelFormInputSelect> {
       bool isDisabled,
       bool isSelected,
       ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
     final isCurrentValue = value.$2 == _value?.$2;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: isCurrentValue
-            ? Theme.of(context).primaryColor.withValues(alpha:0.1)
+            ? colorScheme.primary.withValues(alpha:isDark ? 0.2 : 0.1)
+            : isDark
+            ? colorScheme.surface
             : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCurrentValue
-              ? Theme.of(context).primaryColor
-              : Colors.grey[200]!,
+              ? colorScheme.primary
+              : colorScheme.outline.withValues(alpha:isDark ? 0.2 : 0.15),
           width: isCurrentValue ? 2 : 1,
         ),
+        boxShadow: isCurrentValue
+            ? [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha:0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ]
+            : null,
       ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 4,
+        ),
         title: Text(
           value.$1 ?? '',
           style: TextStyle(
             fontSize: 14,
-            fontWeight: isCurrentValue ? FontWeight.w600 : FontWeight.normal,
+            fontWeight: isCurrentValue ? FontWeight.w600 : FontWeight.w500,
             color: isCurrentValue
-                ? Theme.of(context).primaryColor
-                : Theme.of(context).textTheme.bodyMedium?.color,
+                ? colorScheme.primary
+                : colorScheme.onSurface,
+            letterSpacing: -0.2,
           ),
         ),
-        trailing: Icon(
-          isCurrentValue
-              ? Icons.check_circle_rounded
-              : Icons.radio_button_unchecked_rounded,
-          color: isCurrentValue
-              ? Theme.of(context).primaryColor
-              : Colors.grey[400],
-          size: 24,
+        trailing: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          child: Icon(
+            isCurrentValue
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked_rounded,
+            color: isCurrentValue
+                ? colorScheme.primary
+                : colorScheme.onSurface.withValues(alpha:0.4),
+            size: 24,
+          ),
         ),
       ),
     );

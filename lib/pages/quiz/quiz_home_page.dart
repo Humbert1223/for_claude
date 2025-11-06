@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:novacole/pages/quiz/game_widgets.dart';
 import 'package:novacole/pages/quiz/quiz_game.dart';
 import 'package:novacole/pages/quiz/quiz_setting_page.dart';
 import 'package:novacole/pages/quiz/quiz_scores_page.dart';
@@ -105,86 +106,10 @@ class QuizHomePageState extends State<QuizHomePage> {
                   if (currentUser != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 30,
-                                backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                                child: Text(
-                                  currentUser!.name[0].toUpperCase(),
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      currentUser!.name,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${currentUser!.scores?.length ?? 0} parties',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (unlockedCount > 0)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: Colors.amber,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.emoji_events,
-                                        color: Colors.amber,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '$unlockedCount',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.amber,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
+                      child: ModernUserCard(
+                        userName: currentUser!.name,
+                        gamesCount: currentUser!.scores?.length ?? 0,
+                        achievementsCount: unlockedCount,
                       ),
                     ),
                   const SizedBox(height: 20),
@@ -202,7 +127,7 @@ class QuizHomePageState extends State<QuizHomePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 30.0),
                     child: Column(
                       children: [
-                        QuizGameButton(
+                        ModernGameButton(
                           child: const ListTile(
                             leading: Icon(
                               Icons.flag,
@@ -235,7 +160,7 @@ class QuizHomePageState extends State<QuizHomePage> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        QuizGameButton(
+                        ModernGameButton(
                           child:  ListTile(
                             leading: Icon(
                               Icons.emoji_events,
@@ -261,7 +186,7 @@ class QuizHomePageState extends State<QuizHomePage> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        QuizGameButton(
+                        ModernGameButton(
                           child:  ListTile(
                             leading: Icon(
                               Icons.list,
@@ -287,7 +212,7 @@ class QuizHomePageState extends State<QuizHomePage> {
                           },
                         ),
                         const SizedBox(height: 20),
-                        QuizGameButton(
+                        ModernGameButton(
                           child: const ListTile(
                             leading: Icon(
                               Icons.settings,
@@ -331,81 +256,25 @@ class QuizHomePageState extends State<QuizHomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          FloatingActionButton(
-            heroTag: "backBtn",
+          ModernFloatingButton(
+            color: Colors.red,
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.of(context).pop();
             },
-            child: const RotatedBox(
-              quarterTurns: 2,
-              child: Icon(
-                FontAwesomeIcons.shareFromSquare,
-                color: Colors.red,
-              ),
-            ),
+            icon: FontAwesomeIcons.shareFromSquare,
           ),
-          FloatingActionButton(
-            heroTag: 'volumeBtn',
+          ModernFloatingButton(
             onPressed: () {
               setState(() {
                 _isVolumeOn = !_isVolumeOn;
                 _saveVolumeState();
               });
             },
-            child: Icon(
-              _isVolumeOn
-                  ? FontAwesomeIcons.volumeHigh
-                  : FontAwesomeIcons.volumeXmark,
-              color: Colors.red,
-            ),
+            icon: _isVolumeOn
+                ? FontAwesomeIcons.volumeHigh
+                : FontAwesomeIcons.volumeXmark,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class QuizGameButton extends StatelessWidget {
-  final Widget? child;
-  final VoidCallback onPressed;
-  final Widget? icon;
-
-  const QuizGameButton({
-    super.key,
-    this.child,
-    required this.onPressed,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(50),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade600,
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 5),
-            ),
-            BoxShadow(
-              color: Colors.grey.shade300,
-              offset: const Offset(-5, 0),
-            ),
-            BoxShadow(
-              color: Colors.grey.shade300,
-              offset: const Offset(5, 0),
-            )
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(0.0),
-          child: child,
-        ),
       ),
     );
   }

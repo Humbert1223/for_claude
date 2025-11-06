@@ -7,6 +7,8 @@ import 'package:novacole/pages/auth/account/account_info_page.dart';
 import 'package:novacole/pages/auth/account/update_email.dart';
 import 'package:novacole/pages/auth/account/update_password.dart';
 import 'package:novacole/pages/auth/account/update_phone.dart';
+import 'package:novacole/pages/auth/user_teacher_profile.dart';
+import 'package:novacole/pages/auth/user_tutor_profile.dart';
 
 class UserAccountPage extends StatefulWidget {
   final UserModel? user;
@@ -48,6 +50,28 @@ class UserAccountPageState extends State<UserAccountPage> {
               onTap: (){
                 Navigator.of(context).push(MaterialPageRoute(builder: (context){
                   return const UserAccountInfo();
+                }));
+              },
+            ),
+            SubMenuWidget(
+              title: "Profil Enseignant",
+              subtitle: "Modifier les informations de mon profil enseignant",
+              icon:  Icons.person,
+              onTap: (){
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) {
+                  return const UserTeacherProfile();
+                }));
+              },
+            ),
+            SubMenuWidget(
+              title: "Profil Parent",
+              subtitle: "Modifier les informations de mon profil parent",
+              icon:  Icons.person,
+              onTap: (){
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) {
+                  return const UserTutorProfile();
                 }));
               },
             ),

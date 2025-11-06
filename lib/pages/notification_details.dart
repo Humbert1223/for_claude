@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class NotificationDetails extends StatefulWidget {
   const NotificationDetails({super.key});
@@ -9,10 +8,10 @@ class NotificationDetails extends StatefulWidget {
 }
 
 class NotificationDetailsState extends State<NotificationDetails> {
-  Map<String, dynamic> get notification => Get.arguments;
-
+  Map<String, dynamic> notification = {};
   @override
   void initState() {
+
     if (notification.isEmpty) {
         Future.delayed(Duration.zero, () {
           if(mounted){

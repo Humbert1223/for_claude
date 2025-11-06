@@ -2,9 +2,9 @@
 // FICHIER 1: presence_page.dart
 // ============================================================================
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/loading_indicator.dart';
+import 'package:novacole/core/extensions/list_extension.dart';
 import 'package:novacole/models/form.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/pages/components/presence/presence_filter_form.dart';

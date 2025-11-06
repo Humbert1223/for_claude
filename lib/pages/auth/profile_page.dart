@@ -1,19 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get/get.dart';
 import 'package:novacole/components/model_photo_widget.dart';
 import 'package:novacole/components/my_button.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:novacole/pages/auth/about_app.dart';
 import 'package:novacole/pages/auth/account_switch_page.dart';
-import 'package:novacole/pages/auth/profile_submenu.dart';
+import 'package:novacole/pages/auth/app_maintenance_page.dart';
 import 'package:novacole/pages/auth/school_space_switch_page.dart';
 import 'package:novacole/pages/auth/sync_page.dart';
 import 'package:novacole/pages/auth/user_account_page.dart';
 import 'package:novacole/pages/auth/user_preferences_page.dart';
+import 'package:novacole/pages/auth/user_school_space.dart';
 import 'package:novacole/pages/auth/wallet/school_wallet.dart';
 import 'package:novacole/theme/theme_model.dart';
 import 'package:novacole/utils/api.dart';
@@ -34,7 +34,6 @@ class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   UserModel? currentUser;
   List<Map<String, dynamic>> schools = [];
-  final authController = Get.find<AuthController>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -114,21 +113,18 @@ class _ProfilePageState extends State<ProfilePage>
         opacity: _fadeAnimation,
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 8),
-                _buildProfileHeader(context, mappedUser, theme, isDark),
-                const SizedBox(height: 24),
-                _buildQuickStats(theme, isDark),
-                const SizedBox(height: 24),
-                _buildMenuOptions(context),
-                const SizedBox(height: 24),
-                _buildLogoutButton(),
-                const SizedBox(height: 40),
-              ],
-            ),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              _buildProfileHeader(context, mappedUser, theme, isDark),
+              const SizedBox(height: 24),
+              _buildQuickStats(theme, isDark),
+              const SizedBox(height: 24),
+              _buildMenuOptions(context),
+              const SizedBox(height: 24),
+              _buildLogoutButton(),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
@@ -252,7 +248,7 @@ class _ProfilePageState extends State<ProfilePage>
                         borderRadius: BorderRadius.circular(20),
                         onSave: (value) {
                           if (value != null) {
-                            authController.refreshUser();
+                            authProvider.refreshUser();
                           }
                         },
                       ),
@@ -452,29 +448,46 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildQuickStats(ThemeData theme, bool isDark) {
+    final schoolCount = (currentUser?.schools ?? []).map((s){
+      return s['school_id'];
+    }).toList().toSet().length;
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(
-            icon: Icons.school_rounded,
-            label: 'Écoles',
-            value: '${schools.length}',
-            color: Colors.blue,
-            theme: theme,
-            isDark: isDark,
+            child: GestureDetector(
+              onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                  return UserSchoolSpacePage();
+                }));
+              },
+              child: _buildStatCard(
+                icon: Icons.school_rounded,
+                label: 'Écoles',
+                value: '$schoolCount',
+                color: Colors.blue,
+                theme: theme,
+                isDark: isDark,
+              ),
+            ),
           ),
-        ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard(
-            icon: Icons.account_circle_rounded,
-            label: 'Profils',
-            value: '${currentUser?.schools?.length ?? 0}',
-            color: Colors.purple,
-            theme: theme,
-            isDark: isDark,
+            child: GestureDetector(
+              onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                  return UserSchoolSpacePage();
+                }));
+              },
+              child: _buildStatCard(
+                icon: Icons.account_circle_rounded,
+                label: 'Profils',
+                value: '${currentUser?.schools?.length ?? 0}',
+                color: Colors.purple,
+                theme: theme,
+                isDark: isDark,
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -567,17 +580,6 @@ class _ProfilePageState extends State<ProfilePage>
       ),
       ),
       (
-      icon: Icons.person_outline,
-      title: 'Profils',
-      subtitle: 'Enseignant, Tuteur/Parent, Élève',
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const UserActorProfilesSubmenu(),
-        ),
-      ),
-      ),
-      (
       icon: Icons.settings,
       title: 'Préférences',
       subtitle: 'Ecole, Année scolaire, Canaux de notification',
@@ -593,6 +595,17 @@ class _ProfilePageState extends State<ProfilePage>
       title: 'Thème',
       subtitle: 'Changer le thème de l\'application',
       onTap: () => _changeTheme(),
+      ),
+      (
+      icon: Icons.badge_outlined,
+      title: 'Mes établissements',
+      subtitle: 'Gérer les différents profil dans les différents établissements',
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const UserSchoolSpacePage(),
+        ),
+      ),
       ),
       (
       icon: FontAwesomeIcons.repeat,
@@ -634,6 +647,15 @@ class _ProfilePageState extends State<ProfilePage>
           ),
         ));
       },
+      ),
+      (
+      icon: FontAwesomeIcons.toolbox,
+      title: "Maintenance de l'application",
+      subtitle: "Nettoyer les données, actualiser les données de l'utilisateur",
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AppMaintenancePage()),
+      ),
       ),
       (
       icon: FontAwesomeIcons.circleQuestion,
@@ -690,75 +712,72 @@ class _ProfilePageState extends State<ProfilePage>
     showDialog(
       context: context,
       builder: (context) {
-        return Consumer(
-          builder: (context, ThemeModel notifier, child) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+        final notifier = Provider.of<ThemeModel>(context);
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.palette_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.palette_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text("Choisissez un thème", style: TextStyle(fontSize: 18)),
-                ],
+              const SizedBox(width: 12),
+              const Text("Choisissez un thème", style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildThemeOption(
+                context: context,
+                title: 'Clair',
+                icon: Icons.light_mode_rounded,
+                isSelected: theme == 'bright',
+                onTap: () {
+                  notifier.isDark = false;
+                  local.setString(LocalStorageKeys.theme, 'bright');
+                  Navigator.pop(context);
+                },
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildThemeOption(
-                    context: context,
-                    title: 'Clair',
-                    icon: Icons.light_mode_rounded,
-                    isSelected: theme == 'bright',
-                    onTap: () {
-                      notifier.isDark = false;
-                      local.setString(LocalStorageKeys.theme, 'bright');
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildThemeOption(
-                    context: context,
-                    title: 'Sombre',
-                    icon: Icons.dark_mode_rounded,
-                    isSelected: theme == 'dark',
-                    onTap: () {
-                      notifier.isDark = true;
-                      local.setString(LocalStorageKeys.theme, 'dark');
-                      Navigator.pop(context);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildThemeOption(
-                    context: context,
-                    title: 'Système',
-                    icon: Icons.phone_android_rounded,
-                    isSelected: theme == null || theme == 'system' || theme.isEmpty,
-                    onTap: () {
-                      final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
-                      notifier.isDark = isDarkMode;
-                      local.setString(LocalStorageKeys.theme, 'system');
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
+              const SizedBox(height: 12),
+              _buildThemeOption(
+                context: context,
+                title: 'Sombre',
+                icon: Icons.dark_mode_rounded,
+                isSelected: theme == 'dark',
+                onTap: () {
+                  notifier.isDark = true;
+                  local.setString(LocalStorageKeys.theme, 'dark');
+                  Navigator.pop(context);
+                },
               ),
-            );
-          },
+              const SizedBox(height: 12),
+              _buildThemeOption(
+                context: context,
+                title: 'Système',
+                icon: Icons.phone_android_rounded,
+                isSelected: theme == null || theme == 'system' || theme.isEmpty,
+                onTap: () {
+                  final isDarkMode = MediaQuery.of(context).platformBrightness == Brightness.dark;
+                  notifier.isDark = isDarkMode;
+                  local.setString(LocalStorageKeys.theme, 'system');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         );
       },
     );
@@ -872,7 +891,7 @@ class _ProfilePageState extends State<ProfilePage>
             ),
             ElevatedButton(
               onPressed: () async {
-                await authController.logout();
+                await authProvider.logout();
                 if (context.mounted) {
                   Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                 }

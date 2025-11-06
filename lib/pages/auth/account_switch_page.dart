@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:novacole/controllers/auth_controller.dart';
-import 'package:novacole/models/user_model.dart';
 import 'package:novacole/pages/auth/account/account_switch_widget.dart';
 import 'package:novacole/pages/auth/login_form_widget.dart';
 
@@ -16,9 +13,6 @@ class AccountSwitchPage extends StatefulWidget {
 
 class AccountSwitchPageState extends State<AccountSwitchPage>
     with SingleTickerProviderStateMixin {
-  String? currentUserId;
-  List<UserModel?> users = [];
-  final authController = Get.find<AuthController>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -44,12 +38,6 @@ class AccountSwitchPageState extends State<AccountSwitchPage>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-
-    setState(() {
-      users = authController.savedAccounts.toList();
-    });
-    currentUserId = authController.currentUser.value?.id;
-
     _animationController.forward();
   }
 

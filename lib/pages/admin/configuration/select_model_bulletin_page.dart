@@ -1,7 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:novacole/components/app_bar_back_button.dart';
 import 'package:novacole/components/loading_indicator.dart';
+import 'package:novacole/core/extensions/list_extension.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:novacole/pages/admin/configuration/customize_bulletin_template_page.dart';
@@ -58,54 +59,96 @@ class SelectModelBulletinPageState extends State<SelectModelBulletinPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
+        elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+        leading: AppBarBackButton(),
         title: const Text(
           "Modèles de bulletin",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: false,
-          indicatorPadding: EdgeInsets.zero,
-          tabAlignment: TabAlignment.fill,
-          labelColor: Theme.of(context).colorScheme.primary,
-          unselectedLabelColor: Colors.white,
-          indicator: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(15),
-              topRight: Radius.circular(15),
-            ),
-            border: Border.all(style: BorderStyle.none),
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorColor: Theme.of(context).colorScheme.primary,
-          tabs: [
-            Tab(text: 'COLLÈGE'),
-            Tab(text: 'LYCÉE'),
-          ],
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          TemplatesGrid(
-            templates: templates,
-            degree: 'college',
-            selected: activeTemplate('college'),
-            onActive: onActive,
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha:0.15),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      dividerColor: Colors.transparent,
+                      labelColor: theme.colorScheme.primary,
+                      unselectedLabelColor: Colors.white.withValues(alpha:0.8),
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      indicator: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha:0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      padding: const EdgeInsets.all(4),
+                      tabs: const [
+                        Tab(text: 'COLLÈGE'),
+                        Tab(text: 'LYCÉE'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          TemplatesGrid(
-            templates: templates,
-            degree: 'high_school',
-            selected: activeTemplate('high_school'),
-            onActive: onActive,
+          Expanded(
+            child: isLoading
+                ? const Center(child: LoadingIndicator())
+                : TabBarView(
+              controller: _tabController,
+              children: [
+                TemplatesGrid(
+                  templates: templates,
+                  degree: 'college',
+                  selected: activeTemplate('college'),
+                  onActive: onActive,
+                ),
+                TemplatesGrid(
+                  templates: templates,
+                  degree: 'high_school',
+                  selected: activeTemplate('high_school'),
+                  onActive: onActive,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -119,7 +162,7 @@ class SelectModelBulletinPageState extends State<SelectModelBulletinPage>
     );
     return templates.firstWhereOrNull(
           (element) => element['degree'] == degree,
-        )?['name'] ??
+    )?['name'] ??
         'default';
   }
 
@@ -145,12 +188,26 @@ class SelectModelBulletinPageState extends State<SelectModelBulletinPage>
   _showBottomSheet() {
     return showModalBottomSheet<bool>(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
-        return const Padding(
-          padding: EdgeInsets.all(20.0),
+        return Padding(
+          padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [LoadingIndicator(), Text('Activation en cours ...')],
+            children: [
+              const LoadingIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Activation en cours...',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -176,128 +233,293 @@ class TemplatesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 3 / 4,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.7,
       ),
       itemCount: templates.length,
       itemBuilder: (context, index) {
         final template = templates[index];
         final isSelected = selected == template['value'];
 
-        return InkWell(
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height - 100,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+        return _TemplateCard(
+          template: template,
+          isSelected: isSelected,
+          degree: degree,
+          onActive: onActive,
+        );
+      },
+    );
+  }
+}
+
+class _TemplateCard extends StatelessWidget {
+  final Map<String, dynamic> template;
+  final bool isSelected;
+  final String degree;
+  final Function onActive;
+
+  const _TemplateCard({
+    required this.template,
+    required this.isSelected,
+    required this.degree,
+    required this.onActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _showPreview(context),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? theme.colorScheme.primary
+                  : Colors.grey.shade200,
+              width: isSelected ? 2.5 : 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? theme.colorScheme.primary.withValues(alpha:0.2)
+                    : Colors.black.withValues(alpha:0.06),
+                blurRadius: isSelected ? 12 : 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(18),
+                      ),
                       child: CachedNetworkImage(
                         imageUrl: template['img'],
-                        fit: BoxFit.fill,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey.shade100,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, error, stackTrace) => Container(
+                          color: Colors.grey.shade100,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            size: 40,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(
-                color: isSelected ? Colors.green : Colors.grey.shade300,
-                width: isSelected ? 2 : 1,
+                    if (isSelected)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha:0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            elevation: isSelected ? 4 : 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    Text(
+                      template['name'],
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: isSelected
+                            ? theme.colorScheme.primary
+                            : Colors.grey.shade800,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ActionButton(
+                            icon: Icons.palette_outlined,
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return CustomizeBulletinTemplatePage(
+                                      bulletinData: template,
+                                      degree: degree,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _ActionButton(
+                            icon: isSelected
+                                ? Icons.check_circle
+                                : Icons.check_circle_outline,
+                            onPressed: () {
+                              if (!isSelected) {
+                                onActive(degree, template['value']);
+                              }
+                            },
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : Colors.grey.shade600,
+                            filled: isSelected,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPreview(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height - 80,
+          margin: const EdgeInsets.only(top: 80),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      template['name'],
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.shade100,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Center(
                     child: CachedNetworkImage(
                       imageUrl: template['img'],
-                      fit: BoxFit.cover,
-                      errorWidget: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 40),
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        template['name'],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isSelected
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return CustomizeBulletinTemplatePage(
-                                        bulletinData: template,
-                                        degree: degree,
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.design_services,
-                                size: 30,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: IconButton(
-                              onPressed: () async {
-                                onActive(degree, template['value']);
-                              },
-                              color: Theme.of(context).colorScheme.primary,
-                              icon: Icon(
-                                isSelected
-                                    ? Icons.check_circle
-                                    : Icons.check_circle_outline,
-                                size: 30,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color color;
+  final bool filled;
+
+  const _ActionButton({
+    required this.icon,
+    required this.onPressed,
+    required this.color,
+    this.filled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: filled ? color.withValues(alpha:0.1) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: filled ? color.withValues(alpha:0.3) : Colors.grey.shade300,
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 22,
+            color: color,
+          ),
+        ),
+      ),
     );
   }
 }

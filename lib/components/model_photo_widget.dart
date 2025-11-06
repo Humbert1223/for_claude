@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart' as getX;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:novacole/components/empty_page.dart';
 import 'package:novacole/components/loading_indicator.dart';
-import 'package:novacole/controllers/auth_controller.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/models/master_crud_model.dart';
 import 'package:novacole/models/user_model.dart';
 import 'package:novacole/utils/api.dart';
 import 'package:novacole/utils/permission_utils.dart';
+import 'package:provider/provider.dart';
 
 class ModelPhotoWidget extends StatefulWidget {
   final Function? onSave;
@@ -47,7 +47,6 @@ class ModelPhotoWidgetState extends State<ModelPhotoWidget> {
   final ImagePicker _picker = ImagePicker();
   late final Dio _dio;
   bool _isUploading = false;
-  final authController = getX.Get.find<AuthController>();
 
   @override
   void initState() {
@@ -218,104 +217,106 @@ class ModelPhotoWidgetState extends State<ModelPhotoWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Stack(
-      children: [
-        Container(
-          height: widget.height ?? 90,
-          width: widget.width ?? 90,
-          decoration: BoxDecoration(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Image
-                _buildImage(),
-                // Overlay de chargement
-                if (_isUploading)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            strokeWidth: 3,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Téléversement...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+    return Consumer<AuthProvider>(builder: (context, auth, child){
+      return Stack(
+        children: [
+          Container(
+            height: widget.height ?? 90,
+            width: widget.width ?? 90,
+            decoration: BoxDecoration(
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
-          ),
-        ),
-        // Bouton d'édition moderne
-        if (widget.editable == true &&
-            authController.currentUser.value!.hasPermissionSafe(
-              PermissionName.update(widget.model['entity']),
-            ))
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: GestureDetector(
-              onTap: () => _showImageSourceActionSheet(context),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.primary.withValues(alpha: 0.8),
-                    ],
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.scaffoldBackgroundColor,
-                    width: 2.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+            child: ClipRRect(
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Image
+                  _buildImage(),
+                  // Overlay de chargement
+                  if (_isUploading)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: widget.borderRadius ?? BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              strokeWidth: 3,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Téléversement...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(6),
-                child: Icon(
-                  Icons.edit_rounded,
-                  color: Colors.white,
-                  size: widget.editIconSize ?? 16,
-                ),
+                ],
               ),
             ),
           ),
-      ],
-    );
+          // Bouton d'édition moderne
+          if (widget.editable == true &&
+              auth.currentUser.hasPermissionSafe(
+                PermissionName.update(widget.model['entity']),
+              ))
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () => _showImageSourceActionSheet(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.primary.withValues(alpha: 0.8),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.scaffoldBackgroundColor,
+                      width: 2.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    Icons.edit_rounded,
+                    color: Colors.white,
+                    size: widget.editIconSize ?? 16,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    });
   }
 
   Widget _buildImage() {

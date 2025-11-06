@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../../../../utils/constants.dart';
 
+
 class OverduePaymentByAcademicPie extends StatefulWidget {
   const OverduePaymentByAcademicPie({super.key});
 
@@ -142,46 +143,51 @@ class OverduePaymentByAcademicPieState extends State<OverduePaymentByAcademicPie
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha:0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.payments_rounded,
-                  color: Colors.green.shade700,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Paiements encaissés",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                      letterSpacing: -0.5,
-                    ),
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha:0.15),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Text(
-                    data != null
-                        ? "${data!.length} années scolaires"
-                        : "Répartition par année",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.onSurface.withValues(alpha:0.6),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Icon(
+                    Icons.payments_rounded,
+                    color: Colors.green.shade700,
+                    size: 24,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Paiements encaissés",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: -0.5,
+                          overflow: TextOverflow.ellipsis
+                        ),
+                      ),
+                      Text(
+                        data != null
+                            ? "${data!.length} années scolaires"
+                            : "Répartition par année",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface.withValues(alpha:0.6),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           _buildModernSwitch(theme),
         ],

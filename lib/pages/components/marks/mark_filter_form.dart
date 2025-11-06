@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:novacole/components/form_inputs/input_select.dart';
+import 'package:novacole/controllers/auth_provider.dart';
 import 'package:novacole/hive/assessment.dart';
 import 'package:novacole/hive/classe.dart';
 import 'package:novacole/hive/subject.dart';
-import 'package:novacole/models/user_model.dart';
 import 'package:novacole/utils/hive-service.dart';
 
 class MarkFilterForm extends StatefulWidget {
@@ -25,12 +25,13 @@ class MarkFilterFormState extends State<MarkFilterForm> {
   Key subjectKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
   Key assessKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
 
-  UserModel? user;
   Box<Classe>? classesBox;
   Box<Subject>? subjectsBox;
   Box<Assessment>? assessmentsBox;
 
   bool isInitialized = false;
+  bool hasError = false;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -39,17 +40,36 @@ class MarkFilterFormState extends State<MarkFilterForm> {
   }
 
   Future<void> _initializeBoxes() async {
-    user = await UserModel.fromLocalStorage();
-    if (user == null || user!.school == null) return;
+    try {
+      if (authProvider.currentUser.school == null) {
+        if (mounted) {
+          setState(() {
+            isInitialized = true;
+            hasError = true;
+            errorMessage = 'Aucune école associée à votre compte';
+          });
+        }
+        return;
+      }
 
-    classesBox = await HiveService.classesBox(user!);
-    subjectsBox = await HiveService.subjectsBox(user!);
-    assessmentsBox = await HiveService.assessmentsBox(user!);
+      classesBox = await HiveService.classesBox(authProvider.currentUser);
+      subjectsBox = await HiveService.subjectsBox(authProvider.currentUser);
+      assessmentsBox = await HiveService.assessmentsBox(authProvider.currentUser);
 
-    if (mounted) {
-      setState(() {
-        isInitialized = true;
-      });
+      if (mounted) {
+        setState(() {
+          isInitialized = true;
+          hasError = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isInitialized = true;
+          hasError = true;
+          errorMessage = 'Erreur lors du chargement des filtres';
+        });
+      }
     }
   }
 
@@ -59,12 +79,13 @@ class MarkFilterFormState extends State<MarkFilterForm> {
   }
 
   List<Map<String, dynamic>> _getClasses() {
-    if (classesBox == null || user == null) return [];
+    if (classesBox == null) return [];
 
-    final classList = classesBox!.values
-        .where((classe) => classe.academicId == user!.academic)
-        .toList()
-      ..sort((a, b) => (a.levelOrder ?? 0).compareTo(b.levelOrder ?? 0));
+    final classList =
+        classesBox!.values
+            .where((classe) => classe.academicId == authProvider.currentUser.academic)
+            .toList()
+          ..sort((a, b) => (a.levelOrder ?? 0).compareTo(b.levelOrder ?? 0));
 
     return classList
         .map((c) => {'value': c.remoteId.toString(), 'label': c.name})
@@ -90,7 +111,9 @@ class MarkFilterFormState extends State<MarkFilterForm> {
 
     if (classId != null && classId!.isNotEmpty) {
       final assessmentList = assessmentsBox!.values
-          .where((ass) => ass.classeIds.contains(classId) && ass.closed == false)
+          .where(
+            (ass) => ass.classeIds.contains(classId) && ass.closed == false,
+          )
           .toList();
 
       return assessmentList
@@ -113,7 +136,7 @@ class MarkFilterFormState extends State<MarkFilterForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (!isInitialized || user == null || classesBox == null || subjectsBox == null || assessmentsBox == null) {
+    if (!isInitialized) {
       return Container(
         height: 140,
         alignment: Alignment.center,
@@ -133,11 +156,62 @@ class MarkFilterFormState extends State<MarkFilterForm> {
               'Chargement des filtres...',
               style: TextStyle(
                 fontSize: 13,
-                color: theme.colorScheme.onSurface.withValues(alpha:0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.w500,
               ),
             ),
           ],
+        ),
+      );
+    }
+
+    if (hasError) {
+      return Container(
+        height: 140,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 40,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              errorMessage ?? 'Une erreur est survenue',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  isInitialized = false;
+                  hasError = false;
+                });
+                _initializeBoxes();
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (classesBox == null || subjectsBox == null || assessmentsBox == null) {
+      return Container(
+        height: 140,
+        alignment: Alignment.center,
+        child: Text(
+          'Erreur: Données non disponibles',
+          style: TextStyle(color: theme.colorScheme.error),
         ),
       );
     }
@@ -149,13 +223,13 @@ class MarkFilterFormState extends State<MarkFilterForm> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            theme.colorScheme.primaryContainer.withValues(alpha:0.3),
-            theme.colorScheme.primaryContainer.withValues(alpha:0.1),
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+            theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha:0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -172,15 +246,23 @@ class MarkFilterFormState extends State<MarkFilterForm> {
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted && classId != null) {
-                        final classExists = classes.any((c) => c['value'] == classId);
+                        final classExists = classes.any(
+                          (c) => c['value'] == classId,
+                        );
                         if (!classExists) {
                           setState(() {
                             classId = null;
                             subjectId = null;
                             assessmentId = null;
-                            classeKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
-                            subjectKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
-                            assessKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
+                            classeKey = Key(
+                              DateTime.now().millisecondsSinceEpoch.toString(),
+                            );
+                            subjectKey = Key(
+                              DateTime.now().millisecondsSinceEpoch.toString(),
+                            );
+                            assessKey = Key(
+                              DateTime.now().millisecondsSinceEpoch.toString(),
+                            );
                           });
                           search();
                         }
@@ -198,8 +280,12 @@ class MarkFilterFormState extends State<MarkFilterForm> {
                           classId = value;
                           assessmentId = null;
                           subjectId = null;
-                          subjectKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
-                          assessKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
+                          subjectKey = Key(
+                            DateTime.now().millisecondsSinceEpoch.toString(),
+                          );
+                          assessKey = Key(
+                            DateTime.now().millisecondsSinceEpoch.toString(),
+                          );
                         });
                         search();
                       },
@@ -224,11 +310,15 @@ class MarkFilterFormState extends State<MarkFilterForm> {
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted && assessmentId != null) {
-                        final assessmentExists = assessments.any((a) => a['value'] == assessmentId);
+                        final assessmentExists = assessments.any(
+                          (a) => a['value'] == assessmentId,
+                        );
                         if (!assessmentExists) {
                           setState(() {
                             assessmentId = null;
-                            assessKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
+                            assessKey = Key(
+                              DateTime.now().millisecondsSinceEpoch.toString(),
+                            );
                           });
                           search();
                         }
@@ -271,11 +361,15 @@ class MarkFilterFormState extends State<MarkFilterForm> {
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted && subjectId != null) {
-                  final subjectExists = subjects.any((s) => s['value'] == subjectId);
+                  final subjectExists = subjects.any(
+                    (s) => s['value'] == subjectId,
+                  );
                   if (!subjectExists) {
                     setState(() {
                       subjectId = null;
-                      subjectKey = Key(DateTime.now().millisecondsSinceEpoch.toString());
+                      subjectKey = Key(
+                        DateTime.now().millisecondsSinceEpoch.toString(),
+                      );
                     });
                     search();
                   }
